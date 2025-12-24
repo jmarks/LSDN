@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lsdn-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lsdn
+      POSTGRES_USER: lsdn_user
+      POSTGRES_PASSWORD: lsdn_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - lsdn-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: lsdn-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - lsdn-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lsdn-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://lsdn_user:lsdn_password@postgres:5432/lsdn
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-jwt-secret-key-change-this-in-production
+      JWT_EXPIRES_IN: 7d
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: your-email@gmail.com
+      SMTP_PASS: your-app-password
+      STRIPE_SECRET_KEY: sk_test_your_stripe_secret
+      STRIPE_WEBHOOK_SECRET: whsec_your_webhook_secret
+      CLOUDINARY_CLOUD_NAME: your-cloud-name
+      CLOUDINARY_API_KEY: your-api-key
+      CLOUDINARY_API_SECRET: your-api-secret
+      FRONTEND_URL: https://your-frontend-url.com
+      PARTNER_URL: https://your-partner-url.com
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - lsdn-network
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lsdn-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+      VITE_STRIPE_PUBLISHABLE_KEY: pk_test_your_stripe_publishable
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - lsdn-network
+
+  # Partner Portal
+  partner-portal:
+    build:
+      context: ./partner-portal
+      dockerfile: Dockerfile
+    container_name: lsdn-partner-portal
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    networks:
+      - lsdn-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lsdn-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - partner-portal
+    networks:
+      - lsdn-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  lsdn-network:
+    driver: bridge
