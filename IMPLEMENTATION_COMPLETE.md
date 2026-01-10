@@ -119,7 +119,7 @@ cp .env.example .env
 docker-compose up -d
 
 # Access your apps
-# Frontend: http://localhost:3000
+# Frontend: http://localhost:5173
 # Backend: http://localhost:3001
 # Partner Portal: http://localhost:3002
 ```

@@ -16,3 +16,4 @@ redisClient.on('connect', () => {
 });
 
 export default redisClient;
+export { redisClient };

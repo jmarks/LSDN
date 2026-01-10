@@ -27,7 +27,7 @@ Before you begin, make sure you have the following installed:
    ```
 
 3. **Access your applications**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5173
    - Backend API: http://localhost:3001
    - Partner Portal: http://localhost:3002
 
@@ -89,7 +89,7 @@ Before you begin, make sure you have the following installed:
 
 Once everything is running, you can access:
 
-- **Frontend Application**: http://localhost:3000
+- **Frontend Application**: http://localhost:5173
 - **Backend API**: http://localhost:3001
 - **Partner Portal**: http://localhost:3002
 - **API Documentation**: http://localhost:3001/api/health
@@ -112,7 +112,7 @@ JWT_EXPIRES_IN="7d"
 
 # Application
 PORT=3001
-FRONTEND_URL="http://localhost:3000"
+FRONTEND_URL="http://localhost:5173"
 PARTNER_URL="http://localhost:3002"
 ```
 
@@ -266,7 +266,7 @@ Import the API collection from `docs/postman-collection.json` for easy testing.
 - Backend changes restart the server automatically with nodemon
 
 ### Browser Dev Tools
-- Open http://localhost:3000
+- Open http://localhost:5173
 - Use browser dev tools to inspect API calls
 - Check console for any errors
 
@@ -322,7 +322,7 @@ If you encounter issues:
 
 Once you have the local environment running:
 
-1. **Explore the frontend** at http://localhost:3000
+1. **Explore the frontend** at http://localhost:5173
 2. **Test the API** at http://localhost:3001
 3. **Try the partner portal** at http://localhost:3002
 4. **Add sample data** by running seed scripts

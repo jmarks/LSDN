@@ -70,7 +70,7 @@
    ```
 
 6. **Access the applications:**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5173
    - Backend API: http://localhost:3001
    - Partner Portal: http://localhost:3002
 

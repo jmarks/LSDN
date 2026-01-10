@@ -181,7 +181,7 @@ CLOUDINARY_API_SECRET="your-api-secret"
 
 # Application
 PORT=3001
-FRONTEND_URL="http://localhost:3000"
+FRONTEND_URL="http://localhost:5173"
 PARTNER_URL="http://localhost:3002"
 ```
 
