@@ -12,9 +12,16 @@ const router = Router();
  */
 router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
     const userId = req.user.id;
     const user = await userService.findById(userId);
-     
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -22,8 +29,8 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
         error: 'USER_NOT_FOUND'
       });
     }
- 
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         user: user.sanitize()
@@ -46,11 +53,26 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
  */
 router.put('/profile', authMiddleware, validateProfileUpdate, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
     const updateData = req.body;
     const userId = req.user.id;
     const user = await userService.updateProfile(userId, updateData);
-     
-    res.json({
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+        error: 'USER_NOT_FOUND'
+      });
+    }
+
+    return res.json({
       success: true,
       message: 'Profile updated successfully',
       data: {
@@ -83,8 +105,8 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
     }
     
     const stats = await userService.getUserStats(req.user.id);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         stats
@@ -116,8 +138,8 @@ router.get('/packages', authMiddleware, async (req: Request, res: Response) => {
     }
     
     const packages = await userService.getUserPackages(req.user.id);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         packages
@@ -149,8 +171,8 @@ router.get('/bookings', authMiddleware, async (req: Request, res: Response) => {
     }
     
     const bookings = await userService.getUserBookings(req.user.id);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         bookings
@@ -183,8 +205,8 @@ router.get('/messages', authMiddleware, async (req: Request, res: Response) => {
     
     const limit = parseInt(req.query.limit as string) || 50;
     const messages = await userService.getUserMessages(req.user.id, limit);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         messages
@@ -216,8 +238,8 @@ router.get('/matching-requests', authMiddleware, async (req: Request, res: Respo
     }
     
     const matchingRequests = await userService.getUserMatchingRequests(req.user.id);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         matchingRequests
@@ -260,8 +282,8 @@ router.get('/search', authMiddleware, async (req: Request, res: Response) => {
     }
 
     const users = await userService.searchUsers(query, limit);
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         users
@@ -302,7 +324,7 @@ router.delete('/account', authMiddleware, async (req: Request, res: Response) =>
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Account deleted successfully'
     });

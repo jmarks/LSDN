@@ -12,7 +12,7 @@ import dataSource from '../config/database';
 export class AuthService {
   private userRepository = dataSource.getRepository(User);
 
-  async register(userData: any): Promise<{ user: User; token: string }> {
+  async register(userData: Partial<User>): Promise<{ user: User; token: string }> {
     // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: { email: userData.email }
@@ -223,8 +223,8 @@ export class AuthService {
 
     const saltRounds = 12;
     user.passwordHash = await bcrypt.hash(password, saltRounds);
-    user.resetToken = null;
-    user.resetTokenExpiry = null;
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
  
     // Increment token version to invalidate all existing tokens
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;

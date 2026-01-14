@@ -51,7 +51,7 @@ export class UserService {
     });
   }
 
-  async create(userData: any): Promise<User> {
+  async create(userData: Partial<User>): Promise<User> {
     const user = this.userRepository.create(userData);
     return await this.userRepository.save(user);
   }
@@ -95,8 +95,8 @@ export class UserService {
 
     const saltRounds = 12;
     user.passwordHash = await bcrypt.hash(newPassword, saltRounds);
-    user.resetToken = null;
-    user.resetTokenExpiry = null;
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
     
     return await this.userRepository.save(user);
   }

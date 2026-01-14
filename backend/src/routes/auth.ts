@@ -175,6 +175,13 @@ router.post('/reset-password', validatePasswordReset, async (req: Request, res: 
  */
 router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
     const userId = req.user.id;
     await authService.logout(userId);
     
@@ -199,6 +206,13 @@ router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
  */
 router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
     const userId = req.user.id;
     const result = await authService.enable2FA(userId);
     
@@ -227,7 +241,14 @@ router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) =
  */
 router.post('/2fa/disable', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { userId } = req.user;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
+    const userId = req.user.id;
     const { token } = req.body;
     await authService.disable2FA(userId, token);
     

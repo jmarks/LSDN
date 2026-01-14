@@ -6,6 +6,7 @@ import { Restaurant } from '../entities/Restaurant';
 import { Package } from '../entities/Package';
 import { logger } from '../utils/logger';
 import * as bcrypt from 'bcrypt';
+import { Point } from 'geojson';
 
 async function seedDatabase() {
   try {
@@ -24,14 +25,14 @@ async function seedDatabase() {
         dateOfBirth: new Date('1990-05-15'),
         gender: 'male',
         bio: 'Software developer who loves trying new restaurants and meeting new people.',
-        location: { type: 'Point', coordinates: [-122.4194, 37.7749] }, // San Francisco
+        location: { type: 'Point' as const, coordinates: [-122.4194, 37.7749] }, // San Francisco
         city: 'San Francisco',
         state: 'CA',
         country: 'USA',
         zipCode: '94102',
         interests: ['technology', 'food', 'hiking'],
         languages: ['en'],
-        verificationStatus: 'verified',
+        verificationStatus: 'verified' as const,
         isActive: true,
         tokenVersion: 0
       },
@@ -43,14 +44,14 @@ async function seedDatabase() {
         dateOfBirth: new Date('1988-08-22'),
         gender: 'female',
         bio: 'Marketing professional with a passion for good food and great conversations.',
-        location: { type: 'Point', coordinates: [-122.4194, 37.7749] }, // San Francisco
+        location: { type: 'Point' as const, coordinates: [-122.4194, 37.7749] }, // San Francisco
         city: 'San Francisco',
         state: 'CA',
         country: 'USA',
         zipCode: '94102',
         interests: ['marketing', 'food', 'travel'],
         languages: ['en'],
-        verificationStatus: 'verified',
+        verificationStatus: 'verified' as const,
         isActive: true,
         tokenVersion: 0
       }
@@ -72,11 +73,11 @@ async function seedDatabase() {
         state: 'CA',
         country: 'USA',
         zipCode: '94105',
-        location: { type: 'Point', coordinates: [-122.4005, 37.7910] },
+        location: { type: 'Point', coordinates: [-122.4005, 37.7910] } as Point,
         cuisineType: 'Italian',
         priceRange: '$$' as const,
         capacity: 50,
-        is_active: true
+        is_active: true as const
       },
       {
         name: 'Bistro Verde',
@@ -86,11 +87,11 @@ async function seedDatabase() {
         state: 'CA',
         country: 'USA',
         zipCode: '94105',
-        location: { type: 'Point', coordinates: [-122.3990, 37.7850] },
+        location: { type: 'Point', coordinates: [-122.3990, 37.7850] } as Point,
         cuisineType: 'Mediterranean',
         priceRange: '$$' as const,
         capacity: 60,
-        is_active: true
+        is_active: true as const
       }
     ];
 
@@ -108,7 +109,7 @@ async function seedDatabase() {
         price: 150.00,
         duration_hours: 3,
         max_participants: 2,
-        is_active: true
+        is_active: true as const
       },
       {
         name: 'Dessert & Drinks',
