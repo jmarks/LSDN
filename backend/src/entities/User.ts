@@ -33,16 +33,16 @@ export class User {
   lastName: string;
 
   @Column({ nullable: true })
-  dateOfBirth: Date;
+  dateOfBirth: Date | undefined;
 
   @Column({ nullable: true })
-  gender: string;
+  gender: string | null;
 
   @Column({ type: 'text', nullable: true, length: 150 })
-  bio: string;
+  bio: string | null;
 
   @Column({ nullable: true })
-  profilePhotoUrl: string;
+  profilePhotoUrl: string | null;
 
   @Column({ type: 'jsonb', nullable: true, default: '[]' })
   profilePhotos: string[];
@@ -81,7 +81,7 @@ export class User {
   dietaryRestrictions: string[];
 
   @Column({ nullable: true })
-  verifiedAt: Date;
+  verifiedAt: Date | null;
 
   @Column({ default: 'pending' })
   verificationStatus: 'pending' | 'verified' | 'rejected';
@@ -93,7 +93,7 @@ export class User {
   isActive: boolean;
 
   @Column({ nullable: true })
-  deletedAt: Date;
+  deletedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -102,22 +102,22 @@ export class User {
   updatedAt: Date;
 
   @Column({ nullable: true })
-  lastLoginAt: Date;
+  lastLoginAt: Date | null;
 
   @Column({ nullable: true })
-  tokenVersion: number;
+  tokenVersion: number | null;
 
   @Column({ nullable: true })
-  totpSecret: string;
+  totpSecret: string | null;
 
   @Column({ default: false })
   totpEnabled: boolean;
 
   @Column({ nullable: true })
-  resetToken: string;
+  resetToken: string | null;
 
   @Column({ nullable: true })
-  resetTokenExpiry: Date;
+  resetTokenExpiry: Date | null;
 
   @Column({ nullable: true })
   verificationToken: string | null;
