@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Utensils, Calendar, Users } from 'lucide-react'
+import { Heart, Utensils, Calendar } from 'lucide-react'
 
 const Home: React.FC = () => {
   return (

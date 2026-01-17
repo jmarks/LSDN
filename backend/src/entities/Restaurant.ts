@@ -40,7 +40,7 @@ export class Restaurant {
   @Column()
   zipCode: string;
 
-  @Column({ type: 'point' })
+  @Column({ type: 'geometry', spatialFeatureType: 'Point', srid: 4326 })
   location: Point;
 
   @Column({ nullable: true })

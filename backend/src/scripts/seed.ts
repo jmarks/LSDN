@@ -15,7 +15,7 @@ async function seedDatabase() {
     
     logger.info('Seeding database...');
     
-    // Create sample users
+    // Create sample users (check if they exist first)
     const users = [
       {
         email: 'john.doe@example.com',
@@ -58,12 +58,20 @@ async function seedDatabase() {
     ];
 
     for (const userData of users) {
-      const user = connection.getRepository(User).create(userData);
-      await connection.getRepository(User).save(user);
-      logger.info(`Created user: ${user.email}`);
+      const existingUser = await connection.getRepository(User).findOne({
+        where: { email: userData.email }
+      });
+      
+      if (!existingUser) {
+        const user = connection.getRepository(User).create(userData);
+        await connection.getRepository(User).save(user);
+        logger.info(`Created user: ${user.email}`);
+      } else {
+        logger.info(`User already exists: ${userData.email}`);
+      }
     }
 
-    // Create sample restaurants
+    // Create sample restaurants (check if they exist first)
     const restaurants = [
       {
         name: 'Café Luna',
@@ -96,35 +104,61 @@ async function seedDatabase() {
     ];
 
     for (const restaurantData of restaurants) {
-      const restaurant = connection.getRepository(Restaurant).create(restaurantData);
-      await connection.getRepository(Restaurant).save(restaurant);
-      logger.info(`Created restaurant: ${restaurant.name}`);
+      const existingRestaurant = await connection.getRepository(Restaurant).findOne({
+        where: { name: restaurantData.name }
+      });
+      
+      if (!existingRestaurant) {
+        const restaurant = connection.getRepository(Restaurant).create(restaurantData);
+        await connection.getRepository(Restaurant).save(restaurant);
+        logger.info(`Created restaurant: ${restaurant.name}`);
+      } else {
+        logger.info(`Restaurant already exists: ${restaurantData.name}`);
+      }
     }
 
-    // Create sample packages
+    // Create sample packages (check if they exist first)
+    const [restaurant1, restaurant2] = await connection.getRepository(Restaurant).find();
+    
     const packages = [
       {
+        restaurantId: restaurant1.id,
         name: 'Romantic Dinner',
         description: 'Three-course dinner for two with wine pairing.',
         price: 150.00,
-        duration_hours: 3,
-        max_participants: 2,
-        is_active: true as const
+        serviceFeePercentage: 10.00,
+        totalPrice: 165.00,
+        experienceType: 'dinner' as const,
+        durationMinutes: 180,
+        maxParticipants: 2,
+        isActive: true as const
       },
       {
+        restaurantId: restaurant2.id,
         name: 'Dessert & Drinks',
         description: 'After-dinner drinks and dessert experience.',
         price: 75.00,
-        duration_hours: 1.5,
-        max_participants: 2,
-        is_active: true
+        serviceFeePercentage: 10.00,
+        totalPrice: 82.50,
+        experienceType: 'dessert_walk' as const,
+        durationMinutes: 90,
+        maxParticipants: 2,
+        isActive: true
       }
     ];
 
     for (const packageData of packages) {
-      const packageEntity = connection.getRepository(Package).create(packageData);
-      await connection.getRepository(Package).save(packageEntity);
-      logger.info(`Created package: ${packageEntity.name}`);
+      const existingPackage = await connection.getRepository(Package).findOne({
+        where: { name: packageData.name, restaurantId: packageData.restaurantId }
+      });
+      
+      if (!existingPackage) {
+        const packageEntity = connection.getRepository(Package).create(packageData);
+        await connection.getRepository(Package).save(packageEntity);
+        logger.info(`Created package: ${packageEntity.name}`);
+      } else {
+        logger.info(`Package already exists: ${packageData.name}`);
+      }
     }
 
     logger.info('Database seeding completed successfully!');

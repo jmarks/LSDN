@@ -1,4 +1,3 @@
-import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Layout from './components/Layout'
@@ -50,6 +49,7 @@ function App() {
             <Route path="/matches" element={<Matches />} />
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:userId" element={<Messages />} />
           </Route>
         )}
         

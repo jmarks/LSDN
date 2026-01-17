@@ -98,7 +98,7 @@ export const authMiddleware = (requiredRoles: string[] = []) => {
 
       // Attach user to request
       req.user = user;
-      next();
+      return next();
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
         return res.status(401).json({
@@ -121,7 +121,7 @@ export const authMiddleware = (requiredRoles: string[] = []) => {
       }
 
       console.error('Auth middleware error:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
@@ -202,7 +202,7 @@ export const checkOwnership = (resourceUserIdField: string = 'userId') => {
       }
     }
   
-    next();
+    return next();
   };
 };
 
@@ -274,7 +274,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
 
   const appError = err as AppError;
   
-  res.status(appError.statusCode || 500).json({
+  return res.status(appError.statusCode || 500).json({
     success: false,
     error: {
       code: appError.code || 'INTERNAL_ERROR',

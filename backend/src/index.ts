@@ -3,11 +3,15 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { dataSource } from './config/database';
+import dataSource from './config/database';
 import { redisClient } from './config/redis';
 import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import packageRoutes from './routes/packages';
+import matchRoutes from './routes/matches';
+import bookingRoutes from './routes/bookings';
+import messageRoutes from './routes/messages';
 import { logger } from './utils/logger';
 
 // Load environment variables
@@ -53,6 +57,10 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/packages', packageRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

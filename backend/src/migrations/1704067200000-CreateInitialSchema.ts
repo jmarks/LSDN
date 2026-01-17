@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, Index, TableForeignKey } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
 
 export class CreateInitialSchema1704067200000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -199,11 +199,11 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for users table
-    await queryRunner.createIndex('users', new Index('idx_users_email', ['email']));
-    await queryRunner.createIndex('users', new Index('idx_users_location', ['location']));
-    await queryRunner.createIndex('users', new Index('idx_users_city_state', ['city', 'state']));
-    await queryRunner.createIndex('users', new Index('idx_users_verification_status', ['verification_status']));
-    await queryRunner.createIndex('users', new Index('idx_users_role', ['role']));
+    await queryRunner.createIndex('users', new TableIndex({ name: 'idx_users_email', columnNames: ['email'] }));
+    await queryRunner.createIndex('users', new TableIndex({ name: 'idx_users_location', columnNames: ['location'] }));
+    await queryRunner.createIndex('users', new TableIndex({ name: 'idx_users_city_state', columnNames: ['city', 'state'] }));
+    await queryRunner.createIndex('users', new TableIndex({ name: 'idx_users_verification_status', columnNames: ['verification_status'] }));
+    await queryRunner.createIndex('users', new TableIndex({ name: 'idx_users_role', columnNames: ['role'] }));
 
     // Create restaurants table
     await queryRunner.createTable(
@@ -313,10 +313,10 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for restaurants table
-    await queryRunner.createIndex('restaurants', new Index('idx_restaurants_location', ['location']));
-    await queryRunner.createIndex('restaurants', new Index('idx_restaurants_city_state', ['city', 'state']));
-    await queryRunner.createIndex('restaurants', new Index('idx_restaurants_cuisine_type', ['cuisine_type']));
-    await queryRunner.createIndex('restaurants', new Index('idx_restaurants_rating', ['rating']));
+    await queryRunner.createIndex('restaurants', new TableIndex({ name: 'idx_restaurants_location', columnNames: ['location'] }));
+    await queryRunner.createIndex('restaurants', new TableIndex({ name: 'idx_restaurants_city_state', columnNames: ['city', 'state'] }));
+    await queryRunner.createIndex('restaurants', new TableIndex({ name: 'idx_restaurants_cuisine_type', columnNames: ['cuisine_type'] }));
+    await queryRunner.createIndex('restaurants', new TableIndex({ name: 'idx_restaurants_rating', columnNames: ['rating'] }));
 
     // Create packages table
     await queryRunner.createTable(
@@ -442,10 +442,10 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for user_packages table
-    await queryRunner.createIndex('user_packages', new Index('idx_user_packages_user_id', ['user_id']));
-    await queryRunner.createIndex('user_packages', new Index('idx_user_packages_package_id', ['package_id']));
-    await queryRunner.createIndex('user_packages', new Index('idx_user_packages_expires_at', ['expires_at']));
-    await queryRunner.createIndex('user_packages', new Index('idx_user_packages_status', ['status']));
+    await queryRunner.createIndex('user_packages', new TableIndex({ name: 'idx_user_packages_user_id', columnNames: ['user_id'] }));
+    await queryRunner.createIndex('user_packages', new TableIndex({ name: 'idx_user_packages_package_id', columnNames: ['package_id'] }));
+    await queryRunner.createIndex('user_packages', new TableIndex({ name: 'idx_user_packages_expires_at', columnNames: ['expires_at'] }));
+    await queryRunner.createIndex('user_packages', new TableIndex({ name: 'idx_user_packages_status', columnNames: ['status'] }));
 
     // Create availability_slots table
     await queryRunner.createTable(
@@ -517,9 +517,9 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for availability_slots table
-    await queryRunner.createIndex('availability_slots', new Index('idx_availability_slots_restaurant_id', ['restaurant_id']));
-    await queryRunner.createIndex('availability_slots', new Index('idx_availability_slots_date', ['date']));
-    await queryRunner.createIndex('availability_slots', new Index('idx_availability_slots_time_range', ['start_time', 'end_time']));
+    await queryRunner.createIndex('availability_slots', new TableIndex({ name: 'idx_availability_slots_restaurant_id', columnNames: ['restaurant_id'] }));
+    await queryRunner.createIndex('availability_slots', new TableIndex({ name: 'idx_availability_slots_date', columnNames: ['date'] }));
+    await queryRunner.createIndex('availability_slots', new TableIndex({ name: 'idx_availability_slots_time_range', columnNames: ['start_time', 'end_time'] }));
 
     // Create bookings table
     await queryRunner.createTable(
@@ -652,12 +652,12 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for bookings table
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_user_a_id', ['user_a_id']));
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_user_b_id', ['user_b_id']));
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_restaurant_id', ['restaurant_id']));
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_status', ['status']));
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_booking_time', ['booking_time']));
-    await queryRunner.createIndex('bookings', new Index('idx_bookings_confirmed_at', ['confirmed_at']));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_user_a_id', columnNames: ['user_a_id'] }));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_user_b_id', columnNames: ['user_b_id'] }));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_restaurant_id', columnNames: ['restaurant_id'] }));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_status', columnNames: ['status'] }));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_booking_time', columnNames: ['booking_time'] }));
+    await queryRunner.createIndex('bookings', new TableIndex({ name: 'idx_bookings_confirmed_at', columnNames: ['confirmed_at'] }));
 
     // Create messages table
     await queryRunner.createTable(
@@ -739,11 +739,11 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for messages table
-    await queryRunner.createIndex('messages', new Index('idx_messages_sender_id', ['sender_id']));
-    await queryRunner.createIndex('messages', new Index('idx_messages_receiver_id', ['receiver_id']));
-    await queryRunner.createIndex('messages', new Index('idx_messages_booking_id', ['booking_id']));
-    await queryRunner.createIndex('messages', new Index('idx_messages_created_at', ['created_at']));
-    await queryRunner.createIndex('messages', new Index('idx_messages_is_read', ['is_read']));
+    await queryRunner.createIndex('messages', new TableIndex({ name: 'idx_messages_sender_id', columnNames: ['sender_id'] }));
+    await queryRunner.createIndex('messages', new TableIndex({ name: 'idx_messages_receiver_id', columnNames: ['receiver_id'] }));
+    await queryRunner.createIndex('messages', new TableIndex({ name: 'idx_messages_booking_id', columnNames: ['booking_id'] }));
+    await queryRunner.createIndex('messages', new TableIndex({ name: 'idx_messages_created_at', columnNames: ['created_at'] }));
+    await queryRunner.createIndex('messages', new TableIndex({ name: 'idx_messages_is_read', columnNames: ['is_read'] }));
 
     // Create matching_requests table
     await queryRunner.createTable(
@@ -836,10 +836,10 @@ export class CreateInitialSchema1704067200000 implements MigrationInterface {
     );
 
     // Create indexes for matching_requests table
-    await queryRunner.createIndex('matching_requests', new Index('idx_matching_requests_user_id', ['user_id']));
-    await queryRunner.createIndex('matching_requests', new Index('idx_matching_requests_status', ['status']));
-    await queryRunner.createIndex('matching_requests', new Index('idx_matching_requests_preferred_location', ['preferred_location']));
-    await queryRunner.createIndex('matching_requests', new Index('idx_matching_requests_created_at', ['created_at']));
+    await queryRunner.createIndex('matching_requests', new TableIndex({ name: 'idx_matching_requests_user_id', columnNames: ['user_id'] }));
+    await queryRunner.createIndex('matching_requests', new TableIndex({ name: 'idx_matching_requests_status', columnNames: ['status'] }));
+    await queryRunner.createIndex('matching_requests', new TableIndex({ name: 'idx_matching_requests_preferred_location', columnNames: ['preferred_location'] }));
+    await queryRunner.createIndex('matching_requests', new TableIndex({ name: 'idx_matching_requests_created_at', columnNames: ['created_at'] }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

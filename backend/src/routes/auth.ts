@@ -173,7 +173,7 @@ router.post('/reset-password', validatePasswordReset, async (req: Request, res: 
  * @desc    Logout user (invalidate token)
  * @access  Private
  */
-router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
+router.post('/logout', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -185,13 +185,13 @@ router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
     const userId = req.user.id;
     await authService.logout(userId);
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Logout successful'
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Logout failed',
       error: err.code
@@ -204,7 +204,7 @@ router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Enable 2FA
  * @access  Private
  */
-router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) => {
+router.post('/2fa/enable', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -216,7 +216,7 @@ router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) =
     const userId = req.user.id;
     const result = await authService.enable2FA(userId);
     
-    res.json({
+    return res.json({
       success: true,
       message: '2FA enabled successfully',
       data: {
@@ -226,7 +226,7 @@ router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) =
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || '2FA enable failed',
       error: err.code
@@ -239,7 +239,7 @@ router.post('/2fa/enable', authMiddleware, async (req: Request, res: Response) =
  * @desc    Disable 2FA
  * @access  Private
  */
-router.post('/2fa/disable', authMiddleware, async (req: Request, res: Response) => {
+router.post('/2fa/disable', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -252,13 +252,13 @@ router.post('/2fa/disable', authMiddleware, async (req: Request, res: Response) 
     const { token } = req.body;
     await authService.disable2FA(userId, token);
     
-    res.json({
+    return res.json({
       success: true,
       message: '2FA disabled successfully'
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 400).json({
+    return res.status(err.statusCode || 400).json({
       success: false,
       message: err.message || '2FA disable failed',
       error: err.code
@@ -290,6 +290,38 @@ router.post('/2fa/verify', async (req: Request, res: Response) => {
     res.status(err.statusCode || 401).json({
       success: false,
       message: err.message || '2FA verification failed',
+      error: err.code
+    });
+  }
+});
+
+/**
+ * @route   GET /api/auth/validate
+ * @desc    Validate JWT token and get user data
+ * @access  Private
+ */
+router.get('/validate', authMiddleware(), async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+        error: 'AUTHENTICATION_REQUIRED'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Token validated successfully',
+      data: {
+        user: req.user.sanitize()
+      }
+    });
+  } catch (error: unknown) {
+    const err = error as Error & { statusCode?: number; code?: string };
+    return res.status(err.statusCode || 500).json({
+      success: false,
+      message: err.message || 'Token validation failed',
       error: err.code
     });
   }

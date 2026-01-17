@@ -48,6 +48,15 @@ export const matchingRequestSchema = Joi.object({
   durationHours: Joi.number().min(1).max(12)
 });
 
+export const emailVerificationSchema = Joi.object({
+  token: Joi.string().required()
+});
+
+export const passwordResetSchema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required()
+});
+
 // Validation middleware factory
 export function validateSchema(schema: Joi.Schema) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -79,6 +88,8 @@ export const validateRegistration = validateSchema(registrationSchema);
 export const validateLogin = validateSchema(loginSchema);
 export const validateProfileUpdate = validateSchema(profileUpdateSchema);
 export const validateMatchingRequest = validateSchema(matchingRequestSchema);
+export const validateEmailVerification = validateSchema(emailVerificationSchema);
+export const validatePasswordReset = validateSchema(passwordResetSchema);
 
 // Input sanitization middleware
 export function sanitizeInput(req: Request, res: Response, next: NextFunction) {

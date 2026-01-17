@@ -1,0 +1,18 @@
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  color: #1a202c;
+  background-color: #f7fafc;
+}
+
+/* Add Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

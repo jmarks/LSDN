@@ -95,8 +95,8 @@ export class UserService {
 
     const saltRounds = 12;
     user.passwordHash = await bcrypt.hash(newPassword, saltRounds);
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
     
     return await this.userRepository.save(user);
   }

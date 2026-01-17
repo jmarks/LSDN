@@ -2,15 +2,19 @@ import { Router, Request, Response } from 'express';
 import { userService } from '../services/userService';
 import { authMiddleware } from '../middleware/auth';
 import { validateProfileUpdate } from '../middleware/validation';
+import discoverRoutes from './users/discover';
 
 const router = Router();
+
+// Discover users route
+router.use('/discover', discoverRoutes);
 
 /**
  * @route   GET /api/users/profile
  * @desc    Get current user profile
  * @access  Private
  */
-router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
+router.get('/profile', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -38,7 +42,7 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user profile',
       error: err.code
@@ -51,7 +55,7 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Update user profile
  * @access  Private
  */
-router.put('/profile', authMiddleware, validateProfileUpdate, async (req: Request, res: Response) => {
+router.put('/profile', authMiddleware(), validateProfileUpdate, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -81,7 +85,7 @@ router.put('/profile', authMiddleware, validateProfileUpdate, async (req: Reques
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to update profile',
       error: err.code
@@ -94,7 +98,7 @@ router.put('/profile', authMiddleware, validateProfileUpdate, async (req: Reques
  * @desc    Get user statistics
  * @access  Private
  */
-router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
+router.get('/stats', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -114,7 +118,7 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user stats',
       error: err.code
@@ -127,7 +131,7 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Get user packages
  * @access  Private
  */
-router.get('/packages', authMiddleware, async (req: Request, res: Response) => {
+router.get('/packages', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -147,7 +151,7 @@ router.get('/packages', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user packages',
       error: err.code
@@ -160,7 +164,7 @@ router.get('/packages', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Get user bookings
  * @access  Private
  */
-router.get('/bookings', authMiddleware, async (req: Request, res: Response) => {
+router.get('/bookings', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -180,7 +184,7 @@ router.get('/bookings', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user bookings',
       error: err.code
@@ -193,7 +197,7 @@ router.get('/bookings', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Get user messages
  * @access  Private
  */
-router.get('/messages', authMiddleware, async (req: Request, res: Response) => {
+router.get('/messages', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -214,7 +218,7 @@ router.get('/messages', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user messages',
       error: err.code
@@ -227,7 +231,7 @@ router.get('/messages', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Get user matching requests
  * @access  Private
  */
-router.get('/matching-requests', authMiddleware, async (req: Request, res: Response) => {
+router.get('/matching-requests', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -247,7 +251,7 @@ router.get('/matching-requests', authMiddleware, async (req: Request, res: Respo
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to get user matching requests',
       error: err.code
@@ -260,7 +264,7 @@ router.get('/matching-requests', authMiddleware, async (req: Request, res: Respo
  * @desc    Search users
  * @access  Private
  */
-router.get('/search', authMiddleware, async (req: Request, res: Response) => {
+router.get('/search', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -291,7 +295,7 @@ router.get('/search', authMiddleware, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to search users',
       error: err.code
@@ -304,7 +308,7 @@ router.get('/search', authMiddleware, async (req: Request, res: Response) => {
  * @desc    Delete user account
  * @access  Private
  */
-router.delete('/account', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/account', authMiddleware(), async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -330,7 +334,7 @@ router.delete('/account', authMiddleware, async (req: Request, res: Response) =>
     });
   } catch (error: unknown) {
     const err = error as Error & { statusCode?: number; code?: string };
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Failed to delete account',
       error: err.code

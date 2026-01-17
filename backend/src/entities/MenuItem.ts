@@ -29,7 +29,7 @@ export class MenuItem {
   @Column({ type: 'jsonb', nullable: true })
   ingredients: string[];
 
-  @Column({ nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   allergens: string[];
 
   @Column({ default: true })
@@ -41,8 +41,8 @@ export class MenuItem {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ nullable: true })
-  deletedAt: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   sanitize(): Partial<MenuItem> {
     const { deletedAt, ...sanitizedMenuItem } = this;

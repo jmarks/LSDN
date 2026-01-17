@@ -32,22 +32,22 @@ export class User {
   @Column()
   lastName: string;
 
-  @Column({ nullable: true })
-  dateOfBirth: Date | undefined;
+  @Column({ type: 'timestamp', nullable: true })
+  dateOfBirth: Date | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   gender: string | null;
 
-  @Column({ type: 'text', nullable: true, length: 150 })
+  @Column({ type: 'text', nullable: true })
   bio: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   profilePhotoUrl: string | null;
 
   @Column({ type: 'jsonb', nullable: true, default: '[]' })
   profilePhotos: string[];
 
-  @Column({ type: 'point' })
+  @Column({ type: 'geometry', spatialFeatureType: 'Point', srid: 4326 })
   location: Point;
 
   @Column()
@@ -80,7 +80,7 @@ export class User {
   @Column({ type: 'jsonb', default: '[]' })
   dietaryRestrictions: string[];
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   verifiedAt: Date | null;
 
   @Column({ default: 'pending' })
@@ -92,7 +92,7 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   deletedAt: Date | null;
 
   @CreateDateColumn()
@@ -101,25 +101,25 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   tokenVersion: number | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   totpSecret: string | null;
 
   @Column({ default: false })
   totpEnabled: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   resetToken: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   resetTokenExpiry: Date | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   verificationToken: string | null;
 
   // Relations
