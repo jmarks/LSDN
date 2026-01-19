@@ -37,9 +37,9 @@ function App() {
       />
       
       <Routes>
-        <Route path="/" element={!user ? <Home /> : <Navigate to="/discover" />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/discover" />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/discover" />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
         
         {user && (
           <Route path="/" element={<Layout />}>

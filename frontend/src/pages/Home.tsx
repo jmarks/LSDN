@@ -21,15 +21,15 @@ const Home: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link 
                 to="/register" 
-                className="btn-primary text-lg px-8 py-3"
+                className="btn-primary text-lg px-8 py-4"
               >
-                Get Started
+                Sign Up
               </Link>
               <Link 
                 to="/login" 
-                className="btn-secondary text-lg px-8 py-3"
+                className="btn-secondary text-lg px-8 py-4"
               >
-                Sign In
+                Login
               </Link>
             </div>
 

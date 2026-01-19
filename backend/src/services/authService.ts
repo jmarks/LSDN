@@ -12,7 +12,7 @@ import dataSource from '../config/database';
 export class AuthService {
   private userRepository = dataSource.getRepository(User);
 
-  async register(userData: Partial<User> & { password: string }): Promise<{ user: User; token: string }> {
+  async register(userData: Partial<User> & { password: string; name?: string }): Promise<{ user: User; token: string }> {
     // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: { email: userData.email }
@@ -29,18 +29,36 @@ export class AuthService {
     // Generate verification token
     const verificationToken = this.generateToken();
 
-    // Create user
+    // Split name into first and last name if needed
+    let { firstName, lastName, name } = userData;
+    if (name && !firstName && !lastName) {
+      const nameParts = name.split(' ');
+      firstName = nameParts[0];
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+
+    // Create user - mark as verified by default (temporary measure)
     const user = this.userRepository.create({
       ...userData,
+      firstName: firstName || '',
+      lastName: lastName || '',
       passwordHash,
-      verificationToken,
-      tokenVersion: 0
+      verificationToken: null, // No need for verification token
+      verificationStatus: 'verified',
+      verifiedAt: new Date(),
+      tokenVersion: 0,
+      location: userData.location || { type: 'Point', coordinates: [0, 0] },
+      city: userData.city || '',
+      state: userData.state || '',
+      country: userData.country || '',
+      zipCode: userData.zipCode || '',
+      dateOfBirth: userData.dateOfBirth || null,
+      gender: userData.gender || null
     });
 
     const savedUser = await this.userRepository.save(user);
 
-    // Send verification email
-    await this.sendVerificationEmail(savedUser);
+    // Skip sending verification email (temporary measure)
 
     // Generate JWT token
     const token = this.generateJWT(savedUser);
@@ -67,10 +85,7 @@ export class AuthService {
       throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
 
-    // Check if email is verified
-    if (user.verificationStatus !== 'verified') {
-      throw new AppError('Please verify your email address', 403, 'EMAIL_NOT_VERIFIED');
-    }
+    // Skip email verification check (temporary measure)
 
     // Check if 2FA is enabled
     if (user.totpEnabled) {

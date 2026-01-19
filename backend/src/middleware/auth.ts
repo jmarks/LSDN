@@ -69,16 +69,7 @@ export const authMiddleware = (requiredRoles: string[] = []) => {
         });
       }
 
-      // Check if user is verified (for most endpoints)
-      if (requiredRoles.length > 0 && user.verificationStatus !== 'verified') {
-        return res.status(403).json({
-          success: false,
-          error: {
-            code: 'AUTHORIZATION_ERROR',
-            message: 'Email verification required'
-          }
-        });
-      }
+      // Skip email verification check (temporary measure)
 
       // Check role permissions
       if (requiredRoles.length > 0) {

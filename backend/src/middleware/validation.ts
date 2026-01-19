@@ -5,18 +5,19 @@ import * as Joi from 'joi';
 export const registrationSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required(),
-  firstName: Joi.string().min(2).max(50).required(),
-  lastName: Joi.string().min(2).max(50).required(),
-  dateOfBirth: Joi.date().max('now').min('1900-01-01').required(),
-  gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say').required(),
+  name: Joi.string().min(2).max(100).required(),
+  firstName: Joi.string().min(2).max(50),
+  lastName: Joi.string().min(2).max(50),
+  dateOfBirth: Joi.date().max('now').min('1900-01-01'),
+  gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say'),
   location: Joi.object({
-    type: Joi.string().valid('Point').required(),
-    coordinates: Joi.array().items(Joi.number()).length(2).required()
-  }).required(),
-  city: Joi.string().min(1).max(100).required(),
-  state: Joi.string().min(1).max(100).required(),
-  country: Joi.string().min(1).max(100).required(),
-  zipCode: Joi.string().min(1).max(20).required()
+    type: Joi.string().valid('Point'),
+    coordinates: Joi.array().items(Joi.number()).length(2)
+  }),
+  city: Joi.string().min(1).max(100),
+  state: Joi.string().min(1).max(100),
+  country: Joi.string().min(1).max(100),
+  zipCode: Joi.string().min(1).max(20)
 });
 
 export const loginSchema = Joi.object({

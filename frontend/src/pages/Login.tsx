@@ -14,6 +14,8 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('handleSubmit called with:', { email, password });
+    
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -23,15 +25,19 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
+      console.log('Calling login with:', { email, password });
       const result = await login(email, password);
+      console.log('Login result:', result);
+      
       if (result.success) {
+        console.log('Login successful, navigating to /');
         navigate('/');
       } else {
         setError(result.error || 'Login failed');
       }
     } catch (err) {
-      setError('An unexpected error occurred');
       console.error('Login error:', err);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
