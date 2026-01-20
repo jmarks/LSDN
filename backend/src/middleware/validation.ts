@@ -4,7 +4,7 @@ import * as Joi from 'joi';
 // Validation schemas
 export const registrationSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required(),
+  password: Joi.string().min(6).pattern(/^(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:'"|,.<>\/?]).*$/).required(),
   name: Joi.string().min(2).max(100).required(),
   firstName: Joi.string().min(2).max(50),
   lastName: Joi.string().min(2).max(50),
@@ -55,7 +55,7 @@ export const emailVerificationSchema = Joi.object({
 
 export const passwordResetSchema = Joi.object({
   token: Joi.string().required(),
-  password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required()
+  password: Joi.string().min(6).pattern(/^(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:'"|,.<>\/?]).*$/).required()
 });
 
 // Validation middleware factory

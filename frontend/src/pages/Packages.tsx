@@ -15,7 +15,6 @@ const Packages: React.FC = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [purchasing, setPurchasing] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -38,29 +37,29 @@ const Packages: React.FC = () => {
     fetchPackages();
   }, []);
 
-  const handlePurchase = async (packageId: string) => {
-    try {
-      setPurchasing(packageId);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/packages/${packageId}/purchase`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  const handleAddToCart = (pkg: Package) => {
+    // Get existing cart from local storage
+    const existingCart = localStorage.getItem('cart');
+    let cartItems = existingCart ? JSON.parse(existingCart) : [];
 
-      if (response.ok) {
-        alert('Package purchased successfully!');
-      } else {
-        const errorData = await response.json().catch(() => ({ message: 'Purchase failed' }));
-        throw new Error(errorData.message || 'Purchase failed');
-      }
-    } catch (err) {
-      console.error('Error purchasing package:', err);
-      setError(err instanceof Error ? err.message : 'Failed to purchase package');
-    } finally {
-      setPurchasing(null);
+    // Check if item already exists in cart
+    const existingItemIndex = cartItems.findIndex((item: any) => item.id === pkg.id);
+    if (existingItemIndex !== -1) {
+      // Update quantity if item exists
+      cartItems[existingItemIndex].quantity += 1;
+    } else {
+      // Add new item to cart
+      cartItems.push({
+        id: pkg.id,
+        name: pkg.name,
+        price: pkg.price,
+        quantity: 1,
+      });
     }
+
+    // Save updated cart to local storage
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    alert('Package added to cart!');
   };
 
   if (loading) {
@@ -129,18 +128,10 @@ const Packages: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => handlePurchase(pkg.id)}
-                  disabled={purchasing === pkg.id}
+                  onClick={() => handleAddToCart(pkg)}
                   className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {purchasing === pkg.id ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Purchasing...
-                    </>
-                  ) : (
-                    'Purchase Package'
-                  )}
+                  Add to Cart
                 </button>
               </div>
             </div>

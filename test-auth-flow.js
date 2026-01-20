@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5173';
+const BASE_URL = 'http://localhost:3000';
 
 async function testLogin() {
   console.log('Testing login flow...');
@@ -44,7 +44,7 @@ async function testLogin() {
     });
     
     console.log('✓ Protected route accessible');
-    console.log('Packages count:', packagesResponse.data.data.length);
+    console.log('Packages count:', packagesResponse.data.data.packages.length);
     
     // Test discovery route
     console.log('\n4. Testing discovery route...');

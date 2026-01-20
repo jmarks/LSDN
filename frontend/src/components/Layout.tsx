@@ -1,12 +1,33 @@
-import React, { useState } from 'react'
-import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Heart, Utensils, Calendar, Users, MessageSquare, User, LogOut, Menu, X } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Heart, Utensils, Calendar, Users, MessageSquare, User, LogOut, Menu, X, ShoppingCart, Gift, CheckCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useOnboarding } from '../hooks/useOnboarding'
 
-const Layout: React.FC = () => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth()
+  const { state, steps } = useOnboarding()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
+  const [purchasedExperiences, setPurchasedExperiences] = useState(0)
+  const [inviteStatus, setInviteStatus] = useState('pending')
+
+  useEffect(() => {
+    // Load cart count from local storage
+    const savedCart = localStorage.getItem('cart')
+    if (savedCart) {
+      const cartItems = JSON.parse(savedCart)
+      const count = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+      setCartCount(count)
+    }
+
+    // Load purchased experiences count (mock data for now)
+    setPurchasedExperiences(2)
+
+    // Load invite status (mock data for now)
+    setInviteStatus('pending')
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -57,6 +78,20 @@ const Layout: React.FC = () => {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
+              {/* Cart Icon */}
+              <Link
+                to="/cart"
+                className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors relative"
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+                <span className="hidden md:inline">Cart</span>
+              </Link>
+
               <div className="hidden md:flex items-center space-x-2">
                 <span className="text-sm text-gray-700">Welcome, {user?.firstName || user?.email}</span>
                 <button
@@ -117,9 +152,39 @@ const Layout: React.FC = () => {
         )}
       </nav>
 
+      {/* Status Dashboard */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Purchased Experiences */}
+            <div className="flex items-center space-x-2">
+              <Gift className="h-5 w-5 text-green-500" />
+              <span className="text-sm font-medium text-gray-700">
+                Purchased Experiences: <span className="font-bold">{purchasedExperiences}</span>
+              </span>
+            </div>
+
+            {/* Invite Status */}
+            <div className="flex items-center space-x-2">
+              <CheckCircle className={`h-5 w-5 ${inviteStatus === 'accepted' ? 'text-green-500' : 'text-yellow-500'}`} />
+              <span className="text-sm font-medium text-gray-700">
+                Invite Status: <span className="font-bold capitalize">{inviteStatus}</span>
+              </span>
+            </div>
+
+            {/* Onboarding Progress (if not complete) */}
+            {!state.isOnboardingComplete && (
+              <div className="flex items-center space-x-2 text-sm text-blue-600">
+                <span>Onboarding: {state.completedSteps.length} of {steps.filter(step => step.isRequired).length} steps</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 py-8">
-        <Outlet />
+        {children}
       </main>
 
       {/* Footer */}

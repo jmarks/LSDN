@@ -11,9 +11,9 @@ const userPackageRepository = dataSource.getRepository(UserPackage);
 /**
  * @route   GET /api/packages
  * @desc    Get all available packages
- * @access  Public
+ * @access  Private
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', authMiddleware(), async (req: Request, res: Response) => {
   try {
     const packages = await packageRepository.find({
       order: { price: 'ASC' },
