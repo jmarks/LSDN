@@ -40,8 +40,11 @@ export class AvailabilitySlot {
   @Column()
   capacity: number;
 
+  @Column({ default: 0 })
+  currentBookings: number;
+
   @Column({ default: true })
-  isAvailable: boolean;
+  isActive: boolean;
 
   @Column({ default: false })
   isBlackout: boolean;

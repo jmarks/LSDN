@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Layout from './components/Layout'
@@ -18,11 +19,20 @@ import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import { useAuth } from './hooks/useAuth'
 import { useOnboarding } from './hooks/useOnboarding'
+import Preferences from './pages/Preferences'
+import Welcome from './pages/Welcome'
 
 // Protected Route component that checks authentication and onboarding state
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth()
-  const { state } = useOnboarding()
+  const { isAuthenticated, loading, user } = useAuth()
+  const { state, syncWithUser } = useOnboarding()
+
+  // Sync onboarding state with backend user data when it changes
+  useEffect(() => {
+    if (user) {
+      syncWithUser(user);
+    }
+  }, [user, syncWithUser]);
 
   if (loading) {
     return (
@@ -36,17 +46,45 @@ const ProtectedRoute = () => {
     return <Navigate to="/auth" replace />
   }
 
+  // Check if user has completed profile from backend data
+  // Using a more robust check that handles both Date objects and ISO strings
+  const isProfileComplete = !!(
+    user &&
+    user.firstName?.trim() &&
+    user.lastName?.trim() &&
+    user.bio?.trim() &&
+    (user.dateOfBirth || (user.age && user.age > 0))
+  );
+
+  useEffect(() => {
+    if (user && !loading && isAuthenticated) {
+      console.log('--- Onboarding Sync Check ---');
+      console.log('User fields:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        hasBio: !!user.bio,
+        dateOfBirth: user.dateOfBirth,
+        age: user.age
+      });
+      console.log('isProfileComplete:', isProfileComplete);
+      console.log('Completed Steps:', state.completedSteps);
+    }
+  }, [user, isProfileComplete, state.completedSteps, loading, isAuthenticated]);
+
   // If onboarding is not complete, redirect to appropriate step
-  if (!state.isOnboardingComplete) {
-    // If profile step not completed, redirect to profile completion
-    if (!state.completedSteps.includes('profile')) {
+  if (!state.isOnboardingComplete || !isProfileComplete) {
+    // If profile step not completed or backend data indicates profile is incomplete, redirect to profile completion
+    if (!state.completedSteps.includes('profile') || !isProfileComplete) {
+      console.log('Onboarding step incomplete: PROFILE');
       return <Navigate to="/onboarding/profile" replace />
     }
     // If other required steps not completed, redirect to appropriate step
     if (!state.completedSteps.includes('preferences')) {
+      console.log('Onboarding step incomplete: PREFERENCES');
       return <Navigate to="/onboarding/preferences" replace />
     }
     if (!state.completedSteps.includes('welcome')) {
+      console.log('Onboarding step incomplete: WELCOME');
       return <Navigate to="/onboarding/welcome" replace />
     }
   }
@@ -92,7 +130,7 @@ function App() {
 
   return (
     <div className="App">
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -102,7 +140,7 @@ function App() {
           },
         }}
       />
-      
+
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -114,9 +152,9 @@ function App() {
         {/* Onboarding routes */}
         <Route element={<OnboardingRoute />}>
           <Route path="/onboarding/profile" element={<ProfileCompletion />} />
-          <Route path="/onboarding/preferences" element={<div>Preferences Page (To be implemented)</div>} />
+          <Route path="/onboarding/preferences" element={<Preferences />} />
           <Route path="/onboarding/payment" element={<div>Payment Setup Page (To be implemented)</div>} />
-          <Route path="/onboarding/welcome" element={<div>Welcome Page (To be implemented)</div>} />
+          <Route path="/onboarding/welcome" element={<Welcome />} />
         </Route>
 
         {/* Protected routes */}

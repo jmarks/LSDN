@@ -55,7 +55,12 @@ router.get('/profile', authMiddleware(), async (req: Request, res: Response) => 
  * @desc    Update user profile
  * @access  Private
  */
-router.put('/profile', authMiddleware(), validateProfileUpdate, async (req: Request, res: Response) => {
+router.put('/profile', authMiddleware(), (req, res, next) => {
+  console.log('=== Profile Update Request ===');
+  console.log('Body:', req.body);
+  console.log('Body keys:', Object.keys(req.body));
+  next();
+}, validateProfileUpdate, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

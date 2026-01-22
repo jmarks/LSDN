@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useOnboarding } from '../hooks/useOnboarding';
 
 const ProfileCompletion: React.FC = () => {
   const navigate = useNavigate();
+  const { updateProfile } = useAuth();
+  const { completeStep } = useOnboarding();
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -11,6 +15,8 @@ const ProfileCompletion: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const interests = [
     'Hiking',
@@ -70,39 +76,67 @@ const ProfileCompletion: React.FC = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    // Form validation
-    if (!firstName || !lastName || !age || !bio || selectedInterests.length === 0 || selectedGoals.length === 0) {
-      alert('Please fill in all required fields');
+    // Form validation - only require name, bio, and age
+    if (!firstName.trim() || !lastName.trim() || !age || !bio.trim()) {
+      setError('Please fill in all required fields: First Name, Last Name, Age, and Bio');
       return;
     }
 
     const ageNum = parseInt(age);
     if (ageNum < 18 || ageNum > 100) {
-      alert('Age must be between 18 and 100');
+      setError('Age must be between 18 and 100');
       return;
     }
 
     if (bio.length > 500) {
-      alert('Bio must be less than 500 characters');
+      setError('Bio must be less than 500 characters');
       return;
     }
 
-    // Here you would typically send the data to the backend
-    console.log('Profile completion data:', {
-      profilePicture,
-      firstName,
-      lastName,
-      age: ageNum,
-      bio,
-      interests: selectedInterests,
-      relationshipGoals: selectedGoals
-    });
+    setIsSubmitting(true);
 
-    // Navigate to main app after profile completion
-    navigate('/discover');
+    try {
+      console.log('Submitting profile data:', {
+        profilePhotoUrl: profilePicture,
+        firstName,
+        lastName,
+        age: ageNum,
+        bio,
+        interests: selectedInterests,
+        relationshipGoals: selectedGoals
+      });
+
+      // Send data to backend - use profilePhotoUrl instead of profilePicture to match backend
+      const result = await updateProfile({
+        profilePhotoUrl: profilePicture,
+        firstName,
+        lastName,
+        age: ageNum,
+        bio,
+        interests: selectedInterests,
+        relationshipGoals: selectedGoals
+      });
+
+      console.log('Profile update result:', result);
+
+      if (result.success) {
+        // Mark profile step as complete
+        completeStep('profile');
+        // Navigate to preferences step
+        navigate('/onboarding/preferences');
+      } else {
+        setError(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -119,6 +153,17 @@ const ProfileCompletion: React.FC = () => {
           </button>
           <h1 className="text-2xl font-bold text-gray-800">Complete Your Profile</h1>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium text-red-800">{error}</span>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* Profile Picture */}
@@ -232,11 +277,10 @@ const ProfileCompletion: React.FC = () => {
                   key={interest}
                   type="button"
                   onClick={() => handleInterestToggle(interest)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedInterests.includes(interest)
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedInterests.includes(interest)
                       ? 'bg-purple-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-purple-100'
-                  }`}
+                    }`}
                 >
                   {interest}
                 </button>
@@ -266,9 +310,10 @@ const ProfileCompletion: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue
+              {isSubmitting ? 'Saving...' : 'Continue'}
             </button>
           </div>
         </form>

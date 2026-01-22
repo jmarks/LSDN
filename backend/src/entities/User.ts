@@ -80,6 +80,9 @@ export class User {
   @Column({ type: 'jsonb', default: '[]' })
   dietaryRestrictions: string[];
 
+  @Column({ type: 'jsonb', default: '[]' })
+  relationshipGoals: string[];
+
   @Column({ type: 'timestamp', nullable: true })
   verifiedAt: Date | null;
 
@@ -165,7 +168,7 @@ export class User {
     return age;
   }
 
-  sanitize(): Partial<User> {
+  sanitize(): any {
     const {
       passwordHash,
       totpSecret,
@@ -173,6 +176,9 @@ export class User {
       deletedAt,
       ...sanitizedUser
     } = this;
-    return sanitizedUser;
+    return {
+      ...sanitizedUser,
+      age: this.age
+    };
   }
 }

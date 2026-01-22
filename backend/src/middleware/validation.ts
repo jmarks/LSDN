@@ -28,18 +28,22 @@ export const loginSchema = Joi.object({
 export const profileUpdateSchema = Joi.object({
   firstName: Joi.string().min(2).max(50),
   lastName: Joi.string().min(2).max(50),
-  bio: Joi.string().max(150),
+  bio: Joi.string().max(500),
   interests: Joi.array().items(Joi.string()),
   languages: Joi.array().items(Joi.string().length(2)),
   dietaryRestrictions: Joi.array().items(Joi.string()),
+  relationshipGoals: Joi.array().items(Joi.string()),
   radiusPreference: Joi.number().min(1).max(100),
   ageRangeMin: Joi.number().min(18).max(100),
   ageRangeMax: Joi.number().min(18).max(100).greater(Joi.ref('ageRangeMin')),
   location: Joi.object({
     type: Joi.string().valid('Point'),
     coordinates: Joi.array().items(Joi.number()).length(2)
-  })
-});
+  }),
+  age: Joi.number().min(18).max(100),
+  profilePhotoUrl: Joi.string().allow(null),
+  profilePicture: Joi.string().allow(null) // Keep for backward compatibility
+}).unknown(false);
 
 export const matchingRequestSchema = Joi.object({
   preferredTimeStart: Joi.date().iso().required(),

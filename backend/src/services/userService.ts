@@ -44,7 +44,7 @@ export class UserService {
 
   async findByResetToken(token: string): Promise<User | null> {
     return await this.userRepository.findOne({
-      where: { 
+      where: {
         resetToken: token,
         resetTokenExpiry: MoreThan(new Date())
       }
@@ -64,7 +64,7 @@ export class UserService {
 
     // Don't allow updating sensitive fields
     const { passwordHash, verificationToken, resetToken, resetTokenExpiry, ...updateFields } = updateData;
-    
+
     Object.assign(user, updateFields);
     return await this.userRepository.save(user);
   }
@@ -83,7 +83,7 @@ export class UserService {
     user.verificationToken = null;
     user.verificationStatus = 'verified';
     user.verifiedAt = new Date();
-    
+
     return await this.userRepository.save(user);
   }
 
@@ -97,7 +97,7 @@ export class UserService {
     user.passwordHash = await bcrypt.hash(newPassword, saltRounds);
     user.resetToken = null;
     user.resetTokenExpiry = null;
-    
+
     return await this.userRepository.save(user);
   }
 
@@ -110,8 +110,9 @@ export class UserService {
     // Update allowed fields
     const allowedFields: (keyof User)[] = [
       'firstName', 'lastName', 'bio', 'interests', 'languages',
-      'dietaryRestrictions', 'radiusPreference', 'ageRangeMin',
-      'ageRangeMax', 'location', 'profilePhotoUrl', 'profilePhotos'
+      'dietaryRestrictions', 'relationshipGoals', 'radiusPreference',
+      'ageRangeMin', 'ageRangeMax', 'location', 'profilePhotoUrl', 'profilePhotos',
+      'dateOfBirth'
     ];
 
     allowedFields.forEach(field => {
@@ -119,6 +120,18 @@ export class UserService {
         (user as any)[field] = profileData[field];
       }
     });
+
+    // Handle age conversion if provided
+    if (profileData.age) {
+      const today = new Date();
+      const birthYear = today.getFullYear() - profileData.age;
+      user.dateOfBirth = new Date(birthYear, today.getMonth(), today.getDate());
+    }
+
+    // Handle profile picture (including setting to null)
+    if (profileData.profilePicture !== undefined) {
+      user.profilePhotoUrl = profileData.profilePicture;
+    }
 
     return await this.userRepository.save(user);
   }
@@ -168,8 +181,8 @@ export class UserService {
         { email: Like(`%${query}%`) }
       ],
       select: [
-        'id', 'firstName', 'lastName', 'bio', 'profilePhotoUrl', 
-        'location', 'city', 'state', 'country', 'ageRangeMin', 
+        'id', 'firstName', 'lastName', 'bio', 'profilePhotoUrl',
+        'location', 'city', 'state', 'country', 'ageRangeMin',
         'ageRangeMax', 'interests', 'languages', 'verifiedAt'
       ],
       take: limit

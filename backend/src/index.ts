@@ -12,6 +12,7 @@ import packageRoutes from './routes/packages';
 import matchRoutes from './routes/matches';
 import bookingRoutes from './routes/bookings';
 import messageRoutes from './routes/messages';
+import restaurantRoutes from './routes/restaurants';
 import { logger } from './utils/logger';
 
 // Load environment variables
@@ -61,6 +62,7 @@ app.use('/api/packages', packageRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/restaurants', restaurantRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
