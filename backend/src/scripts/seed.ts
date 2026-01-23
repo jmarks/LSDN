@@ -4,6 +4,7 @@ import { User } from '../entities/User';
 import { Restaurant } from '../entities/Restaurant';
 import { Package } from '../entities/Package';
 import { AvailabilitySlot } from '../entities/AvailabilitySlot';
+import { InterestTag } from '../entities/InterestTag';
 import { logger } from '../utils/logger';
 import * as bcrypt from 'bcrypt';
 import { Point } from 'geojson';
@@ -102,6 +103,20 @@ async function seedDatabase() {
         priceRange: '$$$' as const,
         capacity: 40,
         partnerStatus: 'approved' as const
+      },
+      {
+        name: 'Hula\'s Island Grill',
+        description: 'Hawaiian flavors and tiki cocktails in a retro-surf setting.',
+        addressLine1: '221 Cathcart St',
+        city: 'Santa Cruz',
+        state: 'CA',
+        country: 'USA',
+        zipCode: '95060',
+        location: { type: 'Point', coordinates: [-122.029, 36.972] } as Point,
+        cuisineType: 'Hawaiian',
+        priceRange: '$$' as const,
+        capacity: 60,
+        partnerStatus: 'approved' as const
       }
     ];
 
@@ -116,53 +131,88 @@ async function seedDatabase() {
         logger.info(`Created restaurant: ${restaurant.name}`);
       }
 
-      // Create a default package for each restaurant
-      const pkgName = `${restaurant.name} Date Night`;
-      let pkg = await connection.getRepository(Package).findOne({
-        where: { name: pkgName, restaurantId: restaurant.id }
-      });
+      // Create 3 packages for each restaurant
+      const packageTiers = [
+        { name: 'Essential Date Night', multiplier: 1, desc: 'A lovely introductory experience.' },
+        { name: 'Premium Experience', multiplier: 1.5, desc: 'Enhanced menu with wine pairing.' },
+        { name: 'Ultimate Celebration', multiplier: 2.5, desc: 'Private seating, chef tasting, and champagne.' }
+      ];
 
-      if (!pkg) {
-        const basePrice = rData.priceRange === '$$$$' ? 150 : (rData.priceRange === '$$$' ? 100 : 60);
-        pkg = connection.getRepository(Package).create({
-          restaurantId: restaurant.id,
-          name: pkgName,
-          description: `Curated ${rData.cuisineType} experience for two.`,
-          price: basePrice,
-          serviceFeePercentage: 100.00,
-          totalPrice: basePrice * 2,
-          experienceType: 'dinner',
-          durationMinutes: 90,
-          isActive: true
+      for (const tier of packageTiers) {
+        const pkgName = `${restaurant.name} - ${tier.name}`;
+        let pkg = await connection.getRepository(Package).findOne({
+          where: { name: pkgName, restaurantId: restaurant.id }
         });
-        await connection.getRepository(Package).save(pkg);
-        logger.info(`Created package for: ${restaurant.name}`);
-      }
 
-      // Create availability slots for the next 7 days if none exist
-      const existingSlots = await connection.getRepository(AvailabilitySlot).count({
-        where: { restaurantId: restaurant.id }
+        if (!pkg) {
+          const basePrice = rData.priceRange === '$$$$' ? 150 : (rData.priceRange === '$$$' ? 100 : (rData.priceRange === '$$' ? 60 : 40));
+          const tierPrice = Math.floor(basePrice * tier.multiplier);
+
+          pkg = connection.getRepository(Package).create({
+            restaurant: restaurant,
+            restaurantId: restaurant.id,
+            name: pkgName,
+            description: `${tier.desc} Curated ${rData.cuisineType} experience for two.`,
+            price: tierPrice,
+            serviceFeePercentage: 100.00,
+            totalPrice: tierPrice * 2,
+            experienceType: 'dinner',
+            durationMinutes: 90,
+            isActive: true
+          });
+          await connection.getRepository(Package).save(pkg);
+          logger.info(`Created package: ${pkgName}`);
+        }
+
+        // Create availability slots for the next 7 days if none exist
+        const existingSlots = await connection.getRepository(AvailabilitySlot).count({
+          where: { packageId: pkg.id }
+        });
+
+        if (existingSlots === 0) {
+          const slots = [];
+          for (let i = 1; i <= 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() + i);
+            date.setHours(19, 0, 0, 0); // 7:00 PM
+
+            slots.push(connection.getRepository(AvailabilitySlot).create({
+              restaurantId: restaurant.id,
+              packageId: pkg.id,
+              startTime: date,
+              endTime: new Date(date.getTime() + 90 * 60000),
+              capacity: 4,
+              currentBookings: 0,
+              isActive: true
+            }));
+          }
+          await connection.getRepository(AvailabilitySlot).save(slots);
+          logger.info(`Created slots for: ${pkgName}`);
+        }
+      }
+    }
+
+    // Seed Interest Tags
+    const systemTags = [
+      'Hiking', 'Reading', 'Cooking', 'Traveling', 'Photography', 'Music', 'Movies',
+      'Fitness', 'Art', 'Sports', 'Gaming', 'Yoga', 'Writing', 'Gardening', 'Dancing',
+      'Sky Diving', 'Antique Cars', 'Wine Tasting', 'Live Music', 'Coffee', 'Beach Walks',
+      'Board Games', 'Craft Beer', 'Cycling', 'Volunteering'
+    ];
+
+    for (const tagName of systemTags) {
+      const existingTag = await connection.getRepository(InterestTag).findOne({
+        where: { name: tagName }
       });
 
-      if (existingSlots === 0) {
-        const slots = [];
-        for (let i = 1; i <= 7; i++) {
-          const date = new Date();
-          date.setDate(date.getDate() + i);
-          date.setHours(19, 0, 0, 0); // 7:00 PM
-
-          slots.push(connection.getRepository(AvailabilitySlot).create({
-            restaurantId: restaurant.id,
-            packageId: pkg.id,
-            startTime: date,
-            endTime: new Date(date.getTime() + 90 * 60000),
-            capacity: 4,
-            currentBookings: 0,
-            isActive: true
-          }));
-        }
-        await connection.getRepository(AvailabilitySlot).save(slots);
-        logger.info(`Created slots for: ${restaurant.name}`);
+      if (!existingTag) {
+        const tag = connection.getRepository(InterestTag).create({
+          name: tagName,
+          isSystemTag: true,
+          usageCount: Math.floor(Math.random() * 100)
+        });
+        await connection.getRepository(InterestTag).save(tag);
+        logger.info(`Created system tag: ${tagName}`);
       }
     }
 

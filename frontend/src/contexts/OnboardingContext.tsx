@@ -13,11 +13,9 @@ export interface OnboardingState {
 }
 
 const defaultSteps: OnboardingStep[] = [
-    { id: 'auth', name: 'Authentication', isRequired: true },
-    { id: 'profile', name: 'Profile Completion', isRequired: true },
-    { id: 'preferences', name: 'Preferences', isRequired: true },
-    { id: 'payment', name: 'Payment Setup', isRequired: false },
-    { id: 'welcome', name: 'Welcome', isRequired: true }
+    { id: 'auth', name: 'Registration', isRequired: true },
+    { id: 'profile', name: 'Profile Detail', isRequired: true },
+    { id: 'purchase', name: 'Package Purchase', isRequired: true }
 ];
 
 const STORAGE_KEY = 'onboardingState';
@@ -37,12 +35,24 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [steps] = useState<OnboardingStep[]>(defaultSteps);
     const [state, setState] = useState<OnboardingState>(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : {
-            completedSteps: [],
-            currentStep: 'auth',
-            isOnboardingComplete: false
-        };
+        console.log('[OnboardingContext] Initializing state...');
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            const parsed = saved ? JSON.parse(saved) : null;
+            console.log('[OnboardingContext] Loaded from localStorage:', parsed);
+            return parsed || {
+                completedSteps: [],
+                currentStep: 'auth',
+                isOnboardingComplete: false
+            };
+        } catch (error) {
+            console.error('[OnboardingContext] Error loading onboarding state:', error);
+            return {
+                completedSteps: [],
+                currentStep: 'auth',
+                isOnboardingComplete: false
+            };
+        }
     });
 
     useEffect(() => {
@@ -57,6 +67,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setState(prev => {
             if (prev.completedSteps.includes(stepId)) return prev;
             const newCompleted = [...prev.completedSteps, stepId];
+            console.log('[OnboardingContext] Step completed:', stepId, 'New completed list:', newCompleted);
             return {
                 ...prev,
                 completedSteps: newCompleted,
@@ -76,38 +87,49 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const syncWithUser = useCallback((user: any) => {
         if (!user) return;
         setState(prev => {
-            const completed = [...prev.completedSteps];
-            let changed = false;
+            const completed: string[] = [];
 
-            // Auth is obviously complete if we have a user
-            if (!completed.includes('auth')) {
+            console.log('[OnboardingContext] Syncing with user:', {
+                id: user.id,
+                hasPhoto: !!(user.profilePhotoUrl || user.avatarId),
+                hasInterests: user.interests?.length
+            });
+
+            // Auth check
+            if (user.id) {
                 completed.push('auth');
-                changed = true;
             }
 
-            // Profile check - only requires name, bio, and age
+            // Profile check - mandatory photo/avatar, name, bio, interests
             const hasProfile = !!(
+                (user.profilePhotoUrl || user.avatarId) &&
                 user.firstName?.trim() &&
                 user.lastName?.trim() &&
                 user.bio?.trim() &&
-                (user.dateOfBirth || (user.age && user.age > 0))
+                user.interests?.length >= 3
             );
-            if (hasProfile && !completed.includes('profile')) {
+
+            if (hasProfile) {
                 completed.push('profile');
-                changed = true;
             }
 
-            // Preferences check
-            if (user.interests?.length > 0 && !completed.includes('preferences')) {
-                completed.push('preferences');
-                changed = true;
+            // Purchase check
+            if (user.packages?.length > 0) {
+                completed.push('purchase');
             }
 
-            if (changed) {
+            // Check if anything actually changed to avoid re-renders
+            const isDifferent =
+                completed.length !== prev.completedSteps.length ||
+                !completed.every(s => prev.completedSteps.includes(s));
+
+            if (isDifferent) {
+                const complete = checkOnboardingComplete(completed);
+                console.log('[OnboardingContext] State updated via sync. Complete:', complete, 'Steps:', completed);
                 return {
                     ...prev,
                     completedSteps: completed,
-                    isOnboardingComplete: checkOnboardingComplete(completed)
+                    isOnboardingComplete: complete
                 };
             }
             return prev;

@@ -8,7 +8,7 @@ const Welcome: React.FC = () => {
 
     const handleFinish = () => {
         completeStep('welcome');
-        navigate('/discover');
+        navigate('/onboarding/shop');
     };
 
     return (

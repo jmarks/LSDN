@@ -26,53 +26,62 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
 - Docker and Docker Compose
-- PostgreSQL (can use Docker)
+- Git
 
-### Local Development
+### Local Development with Docker (Recommended)
 
 1. **Clone and setup:**
    ```bash
    git clone <repository-url>
-   cd lsdn
-   cp .env.example .env
+   cd LSDN
    ```
 
-2. **Start development environment:**
+2. **Start all services with Docker Compose:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
-3. **Install dependencies:**
+   This will start:
+   - PostgreSQL with PostGIS (port 5432)
+   - Redis (port 6379)
+   - Backend API (port 3000)
+   - Frontend (port 5173)
+
+3. **Seed the database with Santa Cruz demo data:**
    ```bash
-   cd backend && npm install
-   cd ../frontend && npm install
-   cd ../partner-portal && npm install
+   docker compose exec backend npm run seed
    ```
 
-4. **Run migrations:**
-   ```bash
-   cd backend
-   npm run migrate
-   ```
+4. **Access the applications:**
+   - **Frontend**: http://localhost:5173
+   - **Backend API**: http://localhost:3000
+   - **API Health**: http://localhost:3000/health
 
-5. **Start development servers:**
-   ```bash
-   # Terminal 1: Backend
-   cd backend && npm run dev
-   
-   # Terminal 2: Frontend
-   cd frontend && npm run dev
-   
-   # Terminal 3: Partner Portal
-   cd partner-portal && npm run dev
-   ```
+5. **Test credentials:**
+   - Email: `sc.tester@example.com`
+   - Password: `Password123!`
 
-6. **Access the applications:**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3001
-   - Partner Portal: http://localhost:3002
+### Viewing Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+### Stopping Services
+
+```bash
+# Stop all containers
+docker compose down
+
+# Stop and remove volumes (fresh start)
+docker compose down -v
+```
 
 ## 🏗️ Architecture
 
@@ -139,107 +148,95 @@
 - [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
 - [API Documentation](docs/API.md) - Complete API reference
 
-## 🎯 Key Features
+## 🎯 Key Features (Implemented)
 
 ### User Experience
-- **Simple Registration** - Email, basic profile, and preferences
-- **Package Purchase** - Buy 1, 3, 5, or 10 dinner packages
-- **Time Window Commitment** - Select availability and experience types
-- **Availability-First Matching** - See only compatible, available candidates
-- **Limited "Ask" Functionality** - Throttled invitations to prevent spam
-- **Post-Booking Chat** - Messaging only opens after booking confirmation
-- **Safety Features** - ID verification, photo moderation, safe check-ins
+- ✅ **Email/Password Registration** - Simple account creation
+- ✅ **Profile Completion** - Name, age, bio, interests, goals (interests/goals optional)
+- ✅ **Preferences Setup** - Age range, distance radius, interests
+- ✅ **Discover Restaurants** - Browse local partner restaurants
+- ✅ **Proximity-Based Matching** - PostGIS-powered location matching
+- ✅ **Real Bookings** - Create bookings with voucher codes and QR codes
+- ✅ **Voucher System** - 8-character unique codes per booking
+- ✅ **QR Code Generation** - Scannable codes for restaurant validation
+- ✅ **State Persistence** - Onboarding progress saved to localStorage
 
-### Restaurant Partner Experience
-- **Easy Onboarding** - Simple registration and setup
-- **Menu Management** - Configure prix-fixe packages and pricing
-- **Slot Management** - Set availability and capacity
-- **Voucher Redemption** - QR code scanning at point of service
-- **Analytics Dashboard** - Track bookings, revenue, and performance
+### Restaurant Partner Experience (Data Seeded)
+- ✅ **Restaurant Profiles** - Name, description, location, cuisine type
+- ✅ **Package Management** - Date night packages with pricing
+- ✅ **Availability Slots** - Time-based booking slots
+- ✅ **Capacity Management** - Track current bookings vs capacity
+- 🚧 **Partner Portal** - Planned for future release
 
-### Admin Experience
-- **User Management** - Approve, suspend, or remove users
-- **Partner Management** - Approve and manage restaurant partners
-- **Content Moderation** - Review and moderate user content
-- **Analytics** - Monitor platform performance and metrics
+### Technical Features
+- ✅ **JWT Authentication** - Secure token-based auth
+- ✅ **PostGIS Integration** - Geo-spatial queries for proximity matching
+- ✅ **Joi Validation** - Schema-based input validation
+- ✅ **Docker Deployment** - Full containerization
+- ✅ **TypeScript** - Type-safe backend and frontend
+- ✅ **Context-Based State** - Global auth and onboarding contexts
 
-## 🚀 Deployment
+### Features In Progress
+- 🚧 **Email Verification** - Currently bypassed (auto-verified)
+- 🚧 **Stripe Payments** - Integration stubbed
+- 🚧 **Real-time Messaging** - Basic messaging structure in place
+- 🚧 **Image Uploads** - Currently base64, plan to use Cloudinary
 
-### Easy Deployment Options
+## 📚 Documentation
 
-**Render.com (Recommended):**
-- One-click deployment for all services
-- Free PostgreSQL and Redis
-- Automatic SSL and custom domains
-- [Deployment Guide](docs/DEPLOYMENT.md#option-1-rendercom-recommended-for-easy-deployment)
-
-**Railway:**
-- Simple deployment with minimal configuration
-- Built-in database and cache services
-- [Deployment Guide](docs/DEPLOYMENT.md#option-2-railway)
-
-**Vercel + Railway (Alternative):**
-- Frontend on Vercel, backend on Railway
-- Best of both platforms
-- [Deployment Guide](docs/DEPLOYMENT.md#option-3-vercel--railway-alternative)
-
-### Production Requirements
-
-1. **Environment Variables** - Set all required environment variables
-2. **Database** - PostgreSQL with PostGIS extension
-3. **Cache** - Redis instance
-4. **Email** - SMTP service (SendGrid, Mailgun, or Gmail)
-5. **Images** - Cloudinary account for image processing
-6. **Payments** - Stripe account for payment processing
-
-## 🧪 Testing
-
-### Backend Tests
-```bash
-cd backend
-npm run test
-npm run test:coverage
-```
-
-### Frontend Tests
-```bash
-cd frontend
-npm run test
-npm run test:coverage
-```
-
-### E2E Tests
-```bash
-# Run all E2E tests
-npm run test:e2e
-
-# Run specific test suite
-npm run test:e2e:frontend
-npm run test:e2e:backend
-```
+- **[Functional Specification](docs/FUNCTIONAL_SPECIFICATION.md)** - Complete feature documentation
+- **[API Documentation](#)** - API endpoints and usage (see functional spec)
+- **[Database Schema](#)** - Table structures and relationships (see functional spec)
+- **[Deployment Guide](#deployment)** - Docker-based deployment
 
 ## 🔧 Development
 
-### Code Style
-- ESLint for linting
-- Prettier for formatting
-- Husky for pre-commit hooks
-- TypeScript for type safety
+### Project Structure
 
-### Git Workflow
-1. Create feature branch from `main`
-2. Make changes with tests
-3. Commit with descriptive message
-4. Push to remote
-5. Create pull request
-6. Review and merge
+```
+LSDN/
+├── backend/              # Node.js + Express API
+│   ├── src/
+│   │   ├── entities/     # TypeORM entities
+│   │   ├── routes/       # API route handlers
+│   │   ├── services/     # Business logic
+│   │   ├── middleware/   # Auth, validation, etc.
+│   │   └── scripts/      # Migration and seed scripts
+│   └── dist/             # Compiled TypeScript
+├── frontend/             # React + Vite frontend
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── contexts/     # React contexts (Auth, Onboarding)
+│   │   ├── hooks/        # Custom React hooks
+│   │   └── pages/        # Page components
+│   └── dist/             # Production build
+├── docker-compose.yml    # Docker services configuration
+└── docs/                 # Additional documentation
+```
 
-### Adding New Features
-1. Create database migration
-2. Add API endpoints
-3. Update frontend components
-4. Write tests
-5. Update documentation
+### Environment Setup
+
+The application uses environment variables for configuration. Key variables:
+
+**Backend:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string  
+- `JWT_SECRET` - JWT signing secret
+- `FRONTEND_URL` - CORS allowed origin
+
+**Frontend:**
+- `VITE_API_URL` - Backend API URL (handled by Vite proxy)
+
+### Testing
+
+```bash
+# Backend tests (when implemented)
+cd backend
+npm run test
+
+# Manual API testing
+curl http://localhost:3000/api/restaurants
+```
 
 ## 📊 Metrics and Monitoring
 

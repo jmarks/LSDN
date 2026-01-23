@@ -7,15 +7,15 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('handleSubmit called with:', { email, password });
-    
+
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -28,10 +28,10 @@ const Login: React.FC = () => {
       console.log('Calling login with:', { email, password });
       const result = await login(email, password);
       console.log('Login result:', result);
-      
+
       if (result.success) {
-        console.log('Login successful, navigating to /');
-        navigate('/');
+        console.log('Login successful, navigating to /dashboard');
+        navigate('/dashboard');
       } else {
         setError(result.error || 'Login failed');
       }
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -70,7 +70,7 @@ const Login: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">Email address</label>

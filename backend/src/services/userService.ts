@@ -24,10 +24,18 @@ export class UserService {
   }
 
   async findById(id: string): Promise<User | null> {
-    return await this.userRepository.findOne({
-      where: { id },
-      relations: ['packages', 'bookingsAsUserA', 'bookingsAsUserB', 'sentMessages', 'receivedMessages', 'matchingRequests']
-    });
+    console.log('[UserService] findById:', id);
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id },
+        relations: ['packages', 'bookingsAsUserA', 'bookingsAsUserB', 'sentMessages', 'receivedMessages', 'matchingRequests']
+      });
+      console.log('[UserService] findById found user:', !!user);
+      return user;
+    } catch (error) {
+      console.error('[UserService] findById error:', error);
+      throw error;
+    }
   }
 
   async findByEmail(email: string): Promise<User | null> {

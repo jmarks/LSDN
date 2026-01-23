@@ -15,21 +15,21 @@ export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ name: 'sender_id' })
   senderId: string;
 
   @ManyToOne(() => User, (user) => user.sentMessages)
   @JoinColumn({ name: 'sender_id' })
   sender: User;
 
-  @Column()
+  @Column({ name: 'receiver_id' })
   receiverId: string;
 
   @ManyToOne(() => User, (user) => user.receivedMessages)
   @JoinColumn({ name: 'receiver_id' })
   receiver: User;
 
-  @Column({ nullable: true })
+  @Column({ name: 'booking_id', nullable: true })
   bookingId: string;
 
   @ManyToOne(() => Booking, (booking) => booking.messages)
@@ -57,8 +57,8 @@ export class Message {
   @Column({ nullable: true })
   deletedAt: Date;
 
-  sanitize(): Partial<Message> {
-    const { deletedAt, ...sanitizedMessage } = this;
+  sanitize(): any {
+    const { sender, receiver, booking, deletedAt, ...sanitizedMessage } = this as any;
     return sanitizedMessage;
   }
 }

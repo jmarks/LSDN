@@ -42,7 +42,9 @@ export const profileUpdateSchema = Joi.object({
   }),
   age: Joi.number().min(18).max(100),
   profilePhotoUrl: Joi.string().allow(null),
-  profilePicture: Joi.string().allow(null) // Keep for backward compatibility
+  profilePicture: Joi.string().allow(null), // Keep for backward compatibility
+  avatarId: Joi.string().allow(null),
+  onboardingStep: Joi.string()
 }).unknown(false);
 
 export const matchingRequestSchema = Joi.object({
@@ -66,7 +68,7 @@ export const passwordResetSchema = Joi.object({
 export function validateSchema(schema: Joi.Schema) {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.validate(req.body, { abortEarly: false });
-    
+
     if (error) {
       const errorMessages = error.details.map(detail => ({
         field: detail.path.join('.'),
@@ -123,25 +125,25 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
 // Rate limiting middleware
 export function createRateLimiter(maxAttempts: number, windowMs: number, message: string) {
   const attempts = new Map<string, { count: number; resetTime: number }>();
- 
+
   return (req: Request, res: Response, next: NextFunction) => {
     const key = req.ip + (req.user?.id || '');
     const now = Date.now();
     const attempt = attempts.get(key);
-     
+
     if (!attempts.has(key)) {
       attempts.set(key, { count: 0, resetTime: now + windowMs });
     }
- 
+
     if (!attempt) {
       return next(); // Shouldn't happen, but just in case
     }
- 
+
     if (now > attempt.resetTime) {
       attempt.count = 0;
       attempt.resetTime = now + windowMs;
     }
- 
+
     if (attempt.count >= maxAttempts) {
       return res.status(429).json({
         success: false,
@@ -151,7 +153,7 @@ export function createRateLimiter(maxAttempts: number, windowMs: number, message
         }
       });
     }
- 
+
     attempt.count++;
     next();
   };

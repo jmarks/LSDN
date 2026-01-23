@@ -9,6 +9,8 @@ import { Booking } from '../entities/Booking';
 import { UserPackage } from '../entities/UserPackage';
 import { Message } from '../entities/Message';
 import { MatchingRequest } from '../entities/MatchingRequest';
+import { ShoppingCart } from '../entities/ShoppingCart';
+import { InterestTag } from '../entities/InterestTag';
 
 // Log the database configuration for debugging
 console.log('Database configuration:');
@@ -34,7 +36,9 @@ const dataSource = new DataSource({
     Booking,
     UserPackage,
     Message,
-    MatchingRequest
+    MatchingRequest,
+    ShoppingCart,
+    InterestTag
   ],
   migrations: [__dirname + '/../migrations/*.ts'],
   migrationsTableName: 'migrations',
@@ -46,4 +50,5 @@ const dataSource = new DataSource({
   }
 });
 
+export const AppDataSource = dataSource;
 export default dataSource;

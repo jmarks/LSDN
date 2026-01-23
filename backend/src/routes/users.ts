@@ -34,10 +34,19 @@ router.get('/profile', authMiddleware(), async (req: Request, res: Response) => 
       });
     }
 
+    console.log('[UsersRoute] GET /profile - Result:', {
+      found: !!user,
+      id: user?.id,
+      hasPackages: !!user?.packages
+    });
+
+    const sanitized = user.sanitize();
+    console.log('[UsersRoute] GET /profile - Sanitized');
+
     return res.json({
       success: true,
       data: {
-        user: user.sanitize()
+        user: sanitized
       }
     });
   } catch (error: unknown) {
@@ -112,7 +121,7 @@ router.get('/stats', authMiddleware(), async (req: Request, res: Response) => {
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const stats = await userService.getUserStats(req.user.id);
 
     return res.json({
@@ -145,7 +154,7 @@ router.get('/packages', authMiddleware(), async (req: Request, res: Response) =>
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const packages = await userService.getUserPackages(req.user.id);
 
     return res.json({
@@ -178,7 +187,7 @@ router.get('/bookings', authMiddleware(), async (req: Request, res: Response) =>
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const bookings = await userService.getUserBookings(req.user.id);
 
     return res.json({
@@ -211,7 +220,7 @@ router.get('/messages', authMiddleware(), async (req: Request, res: Response) =>
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const limit = parseInt(req.query.limit as string) || 50;
     const messages = await userService.getUserMessages(req.user.id, limit);
 
@@ -245,7 +254,7 @@ router.get('/matching-requests', authMiddleware(), async (req: Request, res: Res
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const matchingRequests = await userService.getUserMatchingRequests(req.user.id);
 
     return res.json({
@@ -278,7 +287,7 @@ router.get('/search', authMiddleware(), async (req: Request, res: Response) => {
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const query = req.query.q as string;
     const limit = parseInt(req.query.limit as string) || 20;
 
@@ -322,9 +331,9 @@ router.delete('/account', authMiddleware(), async (req: Request, res: Response) 
         error: 'AUTHENTICATION_REQUIRED'
       });
     }
-    
+
     const result = await userService.delete(req.user.id);
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,

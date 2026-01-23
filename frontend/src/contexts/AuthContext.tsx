@@ -11,6 +11,7 @@ interface AuthContextType {
     updateProfile: (userData: any) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
     refreshUser: () => Promise<void>;
+    token: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +30,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     'Authorization': `Bearer ${token}`,
                 },
             });
+
+            console.log('[AuthContext] Profile fetch response status:', response.status);
 
             if (response.ok) {
                 const result = await response.json();
@@ -154,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return (
         <AuthContext.Provider value={{
-            isAuthenticated, user, loading, updatingProfile, error,
+            isAuthenticated, user, loading, updatingProfile, error, token: localStorage.getItem('token'),
             login, register, updateProfile, logout, refreshUser
         }}>
             {children}

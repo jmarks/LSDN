@@ -6,7 +6,8 @@ import {
   UpdateDateColumn,
   OneToMany,
   BeforeInsert,
-  BeforeUpdate
+  BeforeUpdate,
+  OneToOne
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Point } from 'geojson';
@@ -14,6 +15,7 @@ import { UserPackage } from './UserPackage';
 import { Booking } from './Booking';
 import { Message } from './Message';
 import { MatchingRequest } from './MatchingRequest';
+import { ShoppingCart } from './ShoppingCart';
 
 @Entity('users')
 export class User {
@@ -98,6 +100,15 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   deletedAt: Date | null;
 
+  @Column({ name: 'avatar_id', type: 'varchar', length: 50, nullable: true })
+  avatarId: string | null;
+
+  @Column({ name: 'onboarding_step', type: 'varchar', default: 'registration' })
+  onboardingStep: string;
+
+  @Column({ name: 'onboarding_completed_at', type: 'timestamp', nullable: true })
+  onboardingCompletedAt: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -144,6 +155,9 @@ export class User {
   @OneToMany(() => MatchingRequest, (matchingRequest) => matchingRequest.user)
   matchingRequests: MatchingRequest[];
 
+  @OneToOne(() => ShoppingCart, (cart) => cart.user)
+  shoppingCart: ShoppingCart;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
@@ -174,11 +188,20 @@ export class User {
       totpSecret,
       tokenVersion,
       deletedAt,
+      packages,
+      bookingsAsUserA,
+      bookingsAsUserB,
+      sentMessages,
+      receivedMessages,
+      matchingRequests,
+      shoppingCart,
       ...sanitizedUser
     } = this;
+
     return {
       ...sanitizedUser,
-      age: this.age
+      age: this.age,
+      packages: this.packages?.map(pkg => (pkg.sanitize ? pkg.sanitize() : pkg))
     };
   }
 }

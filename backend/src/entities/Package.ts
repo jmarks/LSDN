@@ -53,6 +53,9 @@ export class Package {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: 1 })
+  datesCount: number;
+
   @Column({ type: 'jsonb', nullable: true })
   menuItems: MenuItem[];
 

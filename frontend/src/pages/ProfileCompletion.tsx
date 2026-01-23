@@ -1,323 +1,305 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { useOnboarding } from '../hooks/useOnboarding';
+import { useAuthContext } from '../contexts/AuthContext';
+import { useOnboardingContext } from '../contexts/OnboardingContext';
+import OnboardingProgressBar from '../components/OnboardingProgressBar';
+import AvatarSelector from '../components/AvatarSelector';
+import InterestTagInput from '../components/InterestTagInput';
+import './ProfileCompletion.css';
 
 const ProfileCompletion: React.FC = () => {
   const navigate = useNavigate();
-  const { updateProfile } = useAuth();
-  const { completeStep } = useOnboarding();
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const { user, refreshUser, updateProfile } = useAuthContext();
+  const { completeStep } = useOnboardingContext();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [avatarId, setAvatarId] = useState<string | null>(null);
+  const [photoMode, setPhotoMode] = useState<'upload' | 'avatar'>('upload');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [interestedIn, setInterestedIn] = useState<string[]>([]); // Gender preference
+  const [connectionType, setConnectionType] = useState<string[]>([]); // Relationship type
+
+  // Sync state when user data is loaded/available
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setAge(user.age?.toString() || '');
+      setBio(user.bio || '');
+      setProfilePicture(user.profilePhotoUrl || null);
+      setAvatarId(user.avatarId || null);
+      setSelectedInterests(Array.isArray(user.interests) ? user.interests : []);
+      setInterestedIn(Array.isArray(user.relationshipGoals) ?
+        user.relationshipGoals.filter((g: string) => ['Men', 'Women', 'Non-binary', 'Everyone'].includes(g)) : []
+      );
+      setConnectionType(Array.isArray(user.relationshipGoals) ?
+        user.relationshipGoals.filter((g: string) => !['Men', 'Women', 'Non-binary', 'Everyone'].includes(g)) : []
+      );
+    }
+  }, [user]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const interests = [
-    'Hiking',
-    'Reading',
-    'Cooking',
-    'Traveling',
-    'Photography',
-    'Music',
-    'Movies',
-    'Fitness',
-    'Art',
-    'Sports',
-    'Gaming',
-    'Yoga',
-    'Writing',
-    'Gardening',
-    'Dancing'
-  ];
 
-  const relationshipGoals = [
-    'Long-term relationship',
-    'Casual dating',
-    'Making friends',
-    'Networking',
-    'Not sure yet'
-  ];
-
-  const filteredInterests = interests.filter(interest =>
-    interest.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image too large. Max 5MB.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           setProfilePicture(event.target.result as string);
+          setAvatarId(null); // Clear avatar if photo is uploaded
+          setError(null);
         }
       };
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleInterestToggle = (interest: string) => {
-    setSelectedInterests(prev =>
-      prev.includes(interest)
-        ? prev.filter(item => item !== interest)
-        : [...prev, interest]
-    );
-  };
-
-  const handleGoalToggle = (goal: string) => {
-    setSelectedGoals(prev =>
-      prev.includes(goal)
-        ? prev.filter(item => item !== goal)
-        : [...prev, goal]
-    );
+  const handleAvatarSelect = (id: string) => {
+    setAvatarId(id);
+    setProfilePicture(null); // Clear photo if avatar is selected
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Form validation - only require name, bio, and age
-    if (!firstName.trim() || !lastName.trim() || !age || !bio.trim()) {
-      setError('Please fill in all required fields: First Name, Last Name, Age, and Bio');
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('First and last name are required');
       return;
     }
-
-    const ageNum = parseInt(age);
-    if (ageNum < 18 || ageNum > 100) {
-      setError('Age must be between 18 and 100');
+    if (!profilePicture && !avatarId) {
+      setError('Please upload a photo or select an avatar');
       return;
     }
-
-    if (bio.length > 500) {
-      setError('Bio must be less than 500 characters');
+    if (selectedInterests.length < 3) {
+      setError('Please select at least 3 interest tags');
+      return;
+    }
+    if (!bio.trim() || bio.length < 20) {
+      setError('Bio must be at least 20 characters');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      console.log('Submitting profile data:', {
-        profilePhotoUrl: profilePicture,
-        firstName,
-        lastName,
-        age: ageNum,
-        bio,
-        interests: selectedInterests,
-        relationshipGoals: selectedGoals
-      });
-
-      // Send data to backend - use profilePhotoUrl instead of profilePicture to match backend
       const result = await updateProfile({
-        profilePhotoUrl: profilePicture,
         firstName,
         lastName,
-        age: ageNum,
+        age: parseInt(age),
         bio,
+        profilePhotoUrl: profilePicture,
+        avatarId,
         interests: selectedInterests,
-        relationshipGoals: selectedGoals
+        relationshipGoals: [...interestedIn, ...connectionType],
+        onboardingStep: 'profile'
       });
 
-      console.log('Profile update result:', result);
-
-      if (result.success) {
-        // Mark profile step as complete
-        completeStep('profile');
-        // Navigate to preferences step
-        navigate('/onboarding/preferences');
-      } else {
-        setError(result.error || 'Failed to update profile');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update profile');
       }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setError('Failed to update profile');
+
+      await refreshUser();
+      completeStep('profile');
+      await refreshUser();
+      completeStep('profile');
+      navigate('/onboarding/welcome');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update profile');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8">
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors mr-4"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-800">Complete Your Profile</h1>
-        </div>
+    <div className="onboarding-page profile-completion">
+      <OnboardingProgressBar />
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium text-red-800">{error}</span>
-            </div>
-          </div>
-        )}
+      <div className="profile-form-card">
+        <h1>Customize your profile</h1>
+        <p className="subtitle">Let others know the real you</p>
 
         <form onSubmit={handleSubmit}>
-          {/* Profile Picture */}
-          <div className="mb-8 text-center">
-            <div className="relative mx-auto w-32 h-32 rounded-full overflow-hidden border-4 border-purple-100 shadow-lg">
-              {profilePicture ? (
-                <img
-                  src={profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              )}
+          <section className="form-section photo-section">
+            <label>Profile Appearance</label>
+            <div className="photo-mode-toggle">
+              <button
+                type="button"
+                className={`mode-btn ${photoMode === 'upload' ? 'active' : ''}`}
+                onClick={() => setPhotoMode('upload')}
+              >
+                Upload Photo
+              </button>
+              <button
+                type="button"
+                className={`mode-btn ${photoMode === 'avatar' ? 'active' : ''}`}
+                onClick={() => setPhotoMode('avatar')}
+              >
+                Use Avatar
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => document.getElementById('profile-picture-input')?.click()}
-              className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
-            >
-              {profilePicture ? 'Change Photo' : 'Upload Photo'}
-            </button>
-            <input
-              id="profile-picture-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleProfilePictureChange}
-            />
-          </div>
 
-          {/* Basic Information */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Basic Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="first-name" className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+            <div className="photo-controls">
+              <div className="current-photo-preview">
+                {photoMode === 'upload' && profilePicture ? (
+                  <img src={profilePicture} alt="Profile" />
+                ) : photoMode === 'avatar' && avatarId ? (
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarId}&backgroundColor=b6e3f4,c0aede,d1d4f9`} alt="Avatar" />
+                ) : (
+                  <div className="placeholder-circle">👤</div>
+                )}
+              </div>
+
+              <div className="photo-actions">
+                {photoMode === 'upload' ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-upload"
+                      onClick={() => document.getElementById('photo-input')?.click()}
+                    >
+                      Choose Image
+                    </button>
+                    <input
+                      id="photo-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      style={{ display: 'none' }}
+                    />
+                  </>
+                ) : (
+                  <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Select an avatar below</div>
+                )}
+              </div>
+            </div>
+
+            {photoMode === 'avatar' && (
+              <AvatarSelector
+                selectedAvatarId={avatarId || undefined}
+                onSelect={handleAvatarSelect}
+              />
+            )}
+          </section>
+
+          {/* Identity Section */}
+          <section className="form-section">
+            <div className="row">
+              <div className="field">
+                <label htmlFor="firstName">First Name</label>
                 <input
-                  id="first-name"
+                  id="firstName"
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Enter your first name"
+                  placeholder="e.g. Alex"
                 />
               </div>
-              <div>
-                <label htmlFor="last-name" className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+              <div className="field">
+                <label htmlFor="lastName">Last Name</label>
                 <input
-                  id="last-name"
+                  id="lastName"
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Enter your last name"
-                />
-              </div>
-              <div>
-                <label htmlFor="age" className="block text-sm font-medium text-gray-600 mb-1">Age</label>
-                <input
-                  id="age"
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Enter your age"
-                  min="18"
-                  max="100"
+                  placeholder="e.g. Smith"
                 />
               </div>
             </div>
-            <div className="mt-4">
-              <label htmlFor="bio" className="block text-sm font-medium text-gray-600 mb-1">Bio</label>
-              <textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Tell us about yourself (max 500 characters)"
-                rows={4}
-                maxLength={500}
-              />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {bio.length}/500 characters
-              </div>
-            </div>
-          </div>
-
-          {/* Interests */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Interests</h2>
-            <div className="relative mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <div className="field">
+              <label htmlFor="age">Your Age</label>
               <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Search interests..."
+                id="age"
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                placeholder="Must be 18+"
+                min="18"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              {filteredInterests.map(interest => (
-                <button
-                  key={interest}
-                  type="button"
-                  onClick={() => handleInterestToggle(interest)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedInterests.includes(interest)
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-purple-100'
-                    }`}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
-          </div>
+          </section>
 
-          {/* Relationship Goals */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Relationship Goals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {relationshipGoals.map(goal => (
-                <label key={goal} className="flex items-center space-x-3 cursor-pointer">
+          {/* Bio Section */}
+          <section className="form-section">
+            <label htmlFor="bio">About You</label>
+            <textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell your story... What makes you unique?"
+              rows={4}
+            />
+            <span className="char-count">{(bio || '').length}/500</span>
+          </section>
+
+          {/* Interests Section */}
+          <section className="form-section">
+            <label>Interests & Hobbies</label>
+            <InterestTagInput
+              selectedTags={selectedInterests}
+              onChange={setSelectedInterests}
+            />
+          </section>
+
+          {/* Connection Type Section */}
+          <section className="form-section">
+            <label>I am looking for...</label>
+            <div className="goals-grid">
+              {['Long-term Partner', 'New Friends', 'Casual Dating', 'Networking', 'Activity Partner'].map(option => (
+                <label key={option} className="goal-chip">
                   <input
                     type="checkbox"
-                    checked={selectedGoals.includes(goal)}
-                    onChange={() => handleGoalToggle(goal)}
-                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-gray-300"
+                    checked={connectionType.includes(option)}
+                    onChange={(e) => {
+                      if (e.target.checked) setConnectionType([...connectionType, option]);
+                      else setConnectionType(connectionType.filter(g => g !== option));
+                    }}
                   />
-                  <span className="text-sm text-gray-700">{goal}</span>
+                  <span>{option}</span>
                 </label>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Continue Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Saving...' : 'Continue'}
-            </button>
-          </div>
+          {/* Goals Section */}
+          <section className="form-section">
+            <label>I am interested in meeting...</label>
+            <div className="goals-grid">
+              {['Men', 'Women', 'Non-binary', 'Everyone'].map(option => (
+                <label key={option} className="goal-chip">
+                  <input
+                    type="checkbox"
+                    checked={interestedIn.includes(option)}
+                    onChange={(e) => {
+                      if (e.target.checked) setInterestedIn([...interestedIn, option]);
+                      else setInterestedIn(interestedIn.filter(g => g !== option));
+                    }}
+                  />
+                  <span>{option}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <button type="submit" className="submit-profile-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving Profile...' : 'Save & Continue'}
+          </button>
         </form>
       </div>
+
     </div>
   );
 };

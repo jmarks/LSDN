@@ -14,7 +14,7 @@ export class MatchingRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ name: 'user_id' })
   userId: string;
 
   @ManyToOne(() => User, (user) => user.matchingRequests)
@@ -48,8 +48,8 @@ export class MatchingRequest {
   @Column({ nullable: true })
   deletedAt: Date;
 
-  sanitize(): Partial<MatchingRequest> {
-    const { deletedAt, ...sanitizedMatchingRequest } = this;
+  sanitize(): any {
+    const { user, deletedAt, ...sanitizedMatchingRequest } = this as any;
     return sanitizedMatchingRequest;
   }
 }

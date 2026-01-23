@@ -17,6 +17,7 @@ router.get('/', authMiddleware(), async (req: Request, res: Response) => {
   try {
     const packages = await packageRepository.find({
       order: { price: 'ASC' },
+      relations: ['restaurant']
     });
 
     return res.json({
@@ -45,6 +46,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const pkg = await packageRepository.findOne({
       where: { id },
+      relations: ['restaurant']
     });
 
     if (!pkg) {
@@ -89,6 +91,7 @@ router.post('/:id/purchase', authMiddleware(), async (req: Request, res: Respons
     const { id } = req.params;
     const pkg = await packageRepository.findOne({
       where: { id },
+      relations: ['restaurant']
     });
 
     if (!pkg) {
@@ -119,9 +122,9 @@ router.post('/:id/purchase', authMiddleware(), async (req: Request, res: Respons
     const userPackage = userPackageRepository.create({
       userId: req.user.id,
       packageId: id,
-      quantity: 1,
-      purchasedAt: new Date(),
-      remainingUnits: 1,
+      datesPurchased: pkg.datesCount,
+      datesUsed: 0,
+      purchaseDate: new Date(),
       status: 'active',
     });
 

@@ -19,35 +19,35 @@ export class Booking {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ name: 'user_a_id' })
   userAId: string;
 
   @ManyToOne(() => User, (user) => user.bookingsAsUserA)
   @JoinColumn({ name: 'user_a_id' })
   userA: User;
 
-  @Column()
+  @Column({ name: 'user_b_id' })
   userBId: string;
 
   @ManyToOne(() => User, (user) => user.bookingsAsUserB)
   @JoinColumn({ name: 'user_b_id' })
   userB: User;
 
-  @Column()
+  @Column({ name: 'restaurant_id' })
   restaurantId: string;
 
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.bookings)
   @JoinColumn({ name: 'restaurant_id' })
   restaurant: Restaurant;
 
-  @Column()
+  @Column({ name: 'package_id' })
   packageId: string;
 
   @ManyToOne(() => Package, (pkg) => pkg.bookings)
   @JoinColumn({ name: 'package_id' })
   package: Package;
 
-  @Column()
+  @Column({ name: 'slot_id' })
   slotId: string;
 
   @ManyToOne(() => AvailabilitySlot, (slot) => slot.bookings)
@@ -62,6 +62,22 @@ export class Booking {
 
   @Column({ default: 'pending' })
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+
+  @Column({ name: 'inviter_id', type: 'uuid', nullable: true })
+  inviterId: string | null;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'inviter_id' })
+  inviter: User;
+
+  @Column({ name: 'invite_status', type: 'varchar', default: 'pending' })
+  inviteStatus: 'pending' | 'accepted' | 'declined';
+
+  @Column({ name: 'invited_at', type: 'timestamp', nullable: true })
+  invitedAt: Date | null;
+
+  @Column({ name: 'responded_at', type: 'timestamp', nullable: true })
+  respondedAt: Date | null;
 
   @Column({ nullable: true })
   voucherCode: string;
@@ -99,8 +115,8 @@ export class Booking {
   @Column({ nullable: true })
   deletedAt: Date;
 
-  sanitize(): Partial<Booking> {
-    const { deletedAt, ...sanitizedBooking } = this;
+  sanitize(): any {
+    const { userA, userB, restaurant, package: pkg, slot, messages, inviter, deletedAt, ...sanitizedBooking } = this as any;
     return sanitizedBooking;
   }
 }
